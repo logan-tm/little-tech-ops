@@ -1,0 +1,29 @@
+{
+  "name": "little-tech-ops",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev:client": "cd apps/frontend && npm run dev",
+    "dev:server": "cd apps/backend && npm run dev",
+    "dev": "concurrently --kill-others 'npm run dev:server' 'npm run dev:client'" 
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logan-tm/little-tech-ops.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/logan-tm/little-tech-ops/issues"
+  },
+  "homepage": "https://github.com/logan-tm/little-tech-ops#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

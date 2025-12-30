@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { trpc } from '../utils/trpc'
+import { trpc } from '../../../utils/trpc'
 
-export const Route = createFileRoute('/users')({
+export const Route = createFileRoute('/_authenticated/dashboard/users')({
   component: RouteComponent,
 })
 

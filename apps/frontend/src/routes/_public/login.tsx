@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useAuth } from '@/utils/auth'
+import { useAuth } from '@/hooks/useAuth'
 
 export const Route = createFileRoute('/_public/login')({
   component: LoginComponent,

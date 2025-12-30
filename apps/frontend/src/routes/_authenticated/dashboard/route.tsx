@@ -11,7 +11,7 @@ import {
   useRouter,
 } from '@tanstack/react-router'
 
-import { useAuth } from '@/utils/auth'
+import { useAuth } from '@/hooks/useAuth'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardLayout,
@@ -60,7 +60,7 @@ function DashboardLayout() {
           </button>
         </li>
       </ul>
-      <hr />
+      <hr className="pb-6" />
       <Outlet />
     </div>
   )

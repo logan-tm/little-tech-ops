@@ -5,7 +5,7 @@ import { drizzle } from "drizzle-orm/libsql";
 import { eq } from "drizzle-orm";
 import { redis } from "../cache/redis";
 import { usersTable } from "../db/schema";
-import type { Context } from "../trpc";
+import type { AuthenticatedContext, Context } from "../trpc";
 
 const db = drizzle(process.env.DB_FILE_NAME!);
 
@@ -87,23 +87,50 @@ export default class AuthController {
     }
   }
 
-  static async logout(ctx: Context) {
+  static async logout(ctx: AuthenticatedContext) {
+    const { req, res, user } = ctx;
     try {
-      const cookies = new Cookies(ctx.req, ctx.res, {
+      const cookies = new Cookies(req, res, {
         secure: process.env.NODE_ENV === "production",
       });
       const refreshToken = cookies.get("refreshToken");
 
       if (refreshToken) {
         await redis.del(`refresh_token:${refreshToken}`);
-        // await redis.srem(
+        await redis.srem(`refresh_tokens:${user.id}`, refreshToken);
       }
+      cookies.set("accessToken", "", { ...accessTokenCookieOptions });
+      cookies.set("refreshToken", "", { ...refreshTokenCookieOptions });
+      cookies.set("loggedIn", "false", { ...accessTokenCookieOptions });
     } catch (error) {
       throw new Error(`Logout failed: ${(error as Error).message}`);
     }
   }
 
-  static async logoutAllSessions(ctx: Context) {}
+  static async logoutAllSessions(ctx: AuthenticatedContext) {
+    const { req, res, user } = ctx;
+    try {
+      const refreshTokens = await redis.smembers(`refresh_tokens:${user.id}`);
+      const pipeline = redis.pipeline();
+      refreshTokens.forEach((token) => {
+        pipeline.del(`refresh_token:${token}`);
+      });
+      pipeline.del(`refresh_tokens:${user.id}`);
+      pipeline.del(`user:${user.id}`);
+      await pipeline.exec();
+
+      const cookies = new Cookies(req, res, {
+        secure: process.env.NODE_ENV === "production",
+      });
+      cookies.set("accessToken", "", { ...accessTokenCookieOptions });
+      cookies.set("refreshToken", "", { ...refreshTokenCookieOptions });
+      cookies.set("loggedIn", "false", { ...accessTokenCookieOptions });
+    } catch (error) {
+      throw new Error(
+        `Logout all sessions failed: ${(error as Error).message}`
+      );
+    }
+  }
 
   static async register(input: {
     firstName: string;
@@ -154,7 +181,7 @@ export default class AuthController {
     }
   }
 
-  static async refreshAccessToken(input: string, ctx: Context) {
+  static async refreshAccessToken(input: string, ctx: AuthenticatedContext) {
     try {
       const tokenExists = await redis.get(`refresh_token:${input}`);
       if (!tokenExists) {
@@ -163,7 +190,7 @@ export default class AuthController {
 
       // verify the refresh token and gather userId
       const userId = this.verifyAccessToken(input);
-      if (!userId) {
+      if (!userId || userId.toString() !== ctx.user.id.toString()) {
         throw new Error("Invalid refresh token");
       }
 
@@ -187,5 +214,17 @@ export default class AuthController {
     return jwt.sign({ userId }, process.env.JWT_ACCESS_TOKEN_SECRET!, {
       expiresIn: "15m",
     });
+  }
+
+  static getUserPermissions(ctx: AuthenticatedContext) {
+    const { user } = ctx;
+    // Example permissions based on user role
+    const rolePermissions: Record<string, string[]> = {
+      admin: ["create", "read", "update", "delete"],
+      manager: ["create", "read", "update"],
+      user: ["read"],
+    };
+
+    return rolePermissions[user.role] || [];
   }
 }

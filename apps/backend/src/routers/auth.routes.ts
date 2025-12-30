@@ -1,5 +1,5 @@
 import { z } from "zod/v3";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import AuthController from "../controllers/auth.controller";
 
 export const authRouter = router({
@@ -13,10 +13,10 @@ export const authRouter = router({
     .mutation(async ({ input, ctx }) => {
       AuthController.login(input, ctx);
     }),
-  logout: publicProcedure.mutation(async ({ ctx }) => {
+  logout: protectedProcedure.mutation(async ({ ctx }) => {
     AuthController.logout(ctx);
   }),
-  logoutAllSessions: publicProcedure.mutation(async ({ ctx }) => {
+  logoutAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
     AuthController.logoutAllSessions(ctx);
   }),
   register: publicProcedure
@@ -31,9 +31,12 @@ export const authRouter = router({
     .mutation(async ({ input }) => {
       AuthController.register(input);
     }),
-  refreshAccessToken: publicProcedure
+  refreshAccessToken: protectedProcedure
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       AuthController.refreshAccessToken(input, ctx);
     }),
+  permissions: protectedProcedure.query(async ({ ctx }) => {
+    return AuthController.getUserPermissions(ctx);
+  }),
 });

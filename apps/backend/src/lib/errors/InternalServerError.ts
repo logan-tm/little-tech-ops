@@ -1,0 +1,10 @@
+import { TRPCError } from "@trpc/server";
+
+export default class InternalServerError {
+  constructor(message: string) {
+    return new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message,
+    });
+  }
+}

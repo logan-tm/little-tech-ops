@@ -5,10 +5,15 @@ export const Route = createFileRoute('/_public')({
   validateSearch: z.object({
     redirect: z.string().optional().catch(''),
   }),
-  beforeLoad: ({ context, search }) => {
-    if (context.auth.isAuthenticated) {
+  beforeLoad: async ({ context: { trpc, queryClient }, search }) => {
+    // Eventually, add an 'auth' context using useQuery on trpc.auth.user
+    const isAuthenticated = await queryClient.fetchQuery(
+      trpc.auth.isAuthenticated.queryOptions(),
+    )
+    if (isAuthenticated) {
       throw redirect({ to: search.redirect || '/dashboard' })
     }
+    console.log('isAuthenticated', isAuthenticated)
   },
   component: App,
 })
@@ -33,6 +38,14 @@ function App() {
             className="hover:underline data-[status='active']:font-semibold"
           >
             Login
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/register"
+            className="hover:underline data-[status='active']:font-semibold"
+          >
+            Register
           </Link>
         </li>
       </ul>

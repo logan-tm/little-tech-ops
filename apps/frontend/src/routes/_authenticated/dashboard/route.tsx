@@ -11,7 +11,9 @@ import {
   useRouter,
 } from '@tanstack/react-router'
 
-import { useAuth } from '@/hooks/useAuth'
+// import { useAuth } from '@/contexts/AuthContext'
+import { useMutation } from '@tanstack/react-query'
+import { trpc } from '@/router'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardLayout,
@@ -19,12 +21,21 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 
 function DashboardLayout() {
   const router = useRouter()
-  const auth = useAuth()
+  const logoutMutation = useMutation(
+    trpc.auth.logout.mutationOptions({
+      onSuccess() {
+        router.navigate({ to: '/login' })
+      },
+      onError(error) {
+        alert(`Error logging out: ${error.message}`)
+      },
+    }),
+  )
+  // const auth = useAuth()
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
-      await auth.logout()
-      await router.navigate({ to: '/login' })
+      logoutMutation.mutate()
     }
   }
 

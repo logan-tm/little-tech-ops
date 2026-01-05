@@ -12,7 +12,7 @@
     "dev": "concurrently --kill-others 'npm run dev:server' 'npm run dev:client'",
     "install:client": "cd apps/frontend && npm install --include=dev",
     "install:server": "cd apps/backend && npm install --include=dev",
-    "install:all": "npm run install:client && npm run install:server"
+    "install:all": "npm install --include=dev && npm run install:client && npm run install:server"
   },
   "repository": {
     "type": "git",

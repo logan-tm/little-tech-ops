@@ -11,13 +11,13 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      AuthController.login(input, ctx);
+      await AuthController.login(input, ctx);
     }),
   logout: protectedProcedure.mutation(async ({ ctx }) => {
-    AuthController.logout(ctx);
+    await AuthController.logout(ctx);
   }),
   logoutAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
-    AuthController.logoutAllSessions(ctx);
+    await AuthController.logoutAllSessions(ctx);
   }),
   register: publicProcedure
     .input(
@@ -28,15 +28,26 @@ export const authRouter = router({
         password: z.string().min(6),
       })
     )
-    .mutation(async ({ input }) => {
-      AuthController.register(input);
+    .mutation(async ({ input, ctx }) => {
+      await AuthController.register(input).then(async () => {
+        await AuthController.login(
+          {
+            email: input.email,
+            password: input.password,
+          },
+          ctx
+        );
+      });
     }),
   refreshAccessToken: protectedProcedure
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       AuthController.refreshAccessToken(input, ctx);
     }),
-  permissions: protectedProcedure.query(async ({ ctx }) => {
-    return AuthController.getUserPermissions(ctx);
+  user: protectedProcedure.query(async ({ ctx }) => {
+    return AuthController.getUser(ctx);
+  }),
+  isAuthenticated: publicProcedure.query(async ({ ctx }) => {
+    return !!ctx.user;
   }),
 });

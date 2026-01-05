@@ -2,10 +2,12 @@ import Cookies, { type SetOption } from "cookies";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { drizzle } from "drizzle-orm/libsql";
-import { eq } from "drizzle-orm";
+import { eq, type InferSelectModel } from "drizzle-orm";
 import { redis } from "../cache/redis";
 import { usersTable } from "../db/schema";
 import type { AuthenticatedContext, Context } from "../trpc";
+import UsersController from "./users.controller";
+import UnauthorizedError from "../lib/errors/UnauthorizedError";
 
 const db = drizzle(process.env.DB_FILE_NAME!);
 
@@ -26,49 +28,79 @@ const refreshTokenCookieOptions: SetOption = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
+class TokenController {
+  static verifyToken(token: string, type: "access" | "refresh" = "access") {
+    try {
+      const decoded = jwt.verify(
+        token,
+        type === "access"
+          ? process.env.JWT_ACCESS_TOKEN_SECRET!
+          : process.env.JWT_REFRESH_TOKEN_SECRET!
+      ) as { userId: number };
+
+      if (!decoded || !decoded.userId) {
+        return null;
+      }
+
+      return decoded.userId;
+    } catch (error) {
+      throw new Error(`Token verification failed: ${(error as Error).message}`);
+    }
+  }
+
+  static createAccessToken(userId: number) {
+    return jwt.sign({ userId }, process.env.JWT_ACCESS_TOKEN_SECRET!, {
+      expiresIn: "15m",
+    });
+  }
+
+  static createRefreshToken(userId: number) {
+    const token = jwt.sign({ userId }, process.env.JWT_REFRESH_TOKEN_SECRET!);
+    return token;
+  }
+
+  static async setRefreshTokenCache(
+    token: string,
+    user: InferSelectModel<typeof usersTable>
+  ) {
+    await redis.set(
+      `refresh_token:${token}`,
+      JSON.stringify(user),
+      "EX",
+      7 * 24 * 60 * 60 // 7 days
+    );
+
+    await redis.sadd(`refresh_tokens:${user.id}`, token);
+    await redis.expire(`refresh_tokens:${user.id}`, 7 * 24 * 60 * 60); // 7 days
+
+    await redis.set(
+      `user:${user.id}`,
+      JSON.stringify(user),
+      "EX",
+      7 * 24 * 60 * 60
+    ); // 7 days
+  }
+}
+
 export default class AuthController {
   static async login(input: { email: string; password: string }, ctx: Context) {
     try {
       const { email, password } = input;
-      const user = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.email, email))
-        .limit(1)
-        .get();
+      const user = await UsersController.getUserByEmail(email);
 
       if (!user) {
-        throw new Error("Invalid email or password.");
+        throw new UnauthorizedError("Invalid email or password.");
       }
 
-      // Here you would normally verify the password hash
       if (!bcrypt.compareSync(password, user.passwordHash)) {
-        throw new Error("Invalid email or password");
+        throw new UnauthorizedError("Invalid email or password");
       }
 
-      const accessToken = this.createAccessToken(user.id);
+      const accessToken = TokenController.createAccessToken(user.id);
 
-      const refreshToken = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_REFRESH_TOKEN_SECRET!
-      );
+      const refreshToken = TokenController.createRefreshToken(user.id);
 
-      await redis.set(
-        `refresh_token:${refreshToken}`,
-        user.id,
-        "EX",
-        7 * 24 * 60 * 60 // 7 days
-      );
-
-      await redis.sadd(`refresh_tokens:${user.id}`, refreshToken);
-      await redis.expire(`refresh_tokens:${user.id}`, 7 * 24 * 60 * 60); // 7 days
-
-      await redis.set(
-        `user:${user.id}`,
-        JSON.stringify(user),
-        "EX",
-        7 * 24 * 60 * 60
-      ); // 7 days
+      TokenController.setRefreshTokenCache(refreshToken, user);
 
       const cookies = new Cookies(ctx.req, ctx.res, {
         secure: process.env.NODE_ENV === "production",
@@ -83,7 +115,8 @@ export default class AuthController {
 
       return { message: "Login successful" };
     } catch (error) {
-      throw new Error(`Login failed: ${(error as Error).message}`);
+      console.warn("Caught an unexpected error type, re-throwing...");
+      throw error;
     }
   }
 
@@ -132,6 +165,13 @@ export default class AuthController {
     }
   }
 
+  static async verifyToken(
+    token: string,
+    type: "access" | "refresh" = "access"
+  ) {
+    return TokenController.verifyToken(token, type);
+  }
+
   static async register(input: {
     firstName: string;
     lastName: string;
@@ -140,12 +180,7 @@ export default class AuthController {
   }) {
     const { firstName, lastName, email, password } = input;
 
-    const existingUser = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.email, email))
-      .limit(1)
-      .get();
+    const existingUser = await UsersController.getUserByEmail(email);
 
     if (existingUser) {
       throw new Error("User with this email already exists.");
@@ -153,7 +188,7 @@ export default class AuthController {
 
     const passwordHash = bcrypt.hashSync(password, 10);
 
-    await db.insert(usersTable).values({
+    await UsersController.createUser({
       firstName,
       lastName,
       email,
@@ -164,23 +199,6 @@ export default class AuthController {
     return { message: "Registration successful" };
   }
 
-  static verifyAccessToken(token: string) {
-    try {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_ACCESS_TOKEN_SECRET!
-      ) as { userId: number };
-
-      if (!decoded || !decoded.userId) {
-        return null;
-      }
-
-      return decoded.userId;
-    } catch (error) {
-      throw new Error(`Token verification failed: ${(error as Error).message}`);
-    }
-  }
-
   static async refreshAccessToken(input: string, ctx: AuthenticatedContext) {
     try {
       const tokenExists = await redis.get(`refresh_token:${input}`);
@@ -189,12 +207,12 @@ export default class AuthController {
       }
 
       // verify the refresh token and gather userId
-      const userId = this.verifyAccessToken(input);
+      const userId = TokenController.verifyToken(input, "refresh");
       if (!userId || userId.toString() !== ctx.user.id.toString()) {
         throw new Error("Invalid refresh token");
       }
 
-      const accessToken = this.createAccessToken(userId);
+      const accessToken = TokenController.createAccessToken(userId);
 
       const cookies = new Cookies(ctx.req, ctx.res, {
         secure: process.env.NODE_ENV === "production",
@@ -210,21 +228,21 @@ export default class AuthController {
     }
   }
 
-  static createAccessToken(userId: number) {
-    return jwt.sign({ userId }, process.env.JWT_ACCESS_TOKEN_SECRET!, {
-      expiresIn: "15m",
-    });
-  }
-
-  static getUserPermissions(ctx: AuthenticatedContext) {
-    const { user } = ctx;
-    // Example permissions based on user role
-    const rolePermissions: Record<string, string[]> = {
-      admin: ["create", "read", "update", "delete"],
-      manager: ["create", "read", "update"],
-      user: ["read"],
+  static getUser(ctx: AuthenticatedContext) {
+    // Example user as if fetched from database
+    const user = {
+      id: ctx.user.id,
+      firstName: ctx.user.firstName,
+      lastName: ctx.user.lastName,
+      email: ctx.user.email,
+      role: ctx.user.role,
+      permissions: [
+        "read_articles",
+        "write_articles",
+        "delete_comments",
+        "ban_users",
+      ],
     };
-
-    return rolePermissions[user.role] || [];
+    return user;
   }
 }

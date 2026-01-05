@@ -16,7 +16,7 @@ export const createContext = async ({
       return { req, res };
     }
 
-    const userId = AuthController.verifyAccessToken(accessToken);
+    const userId = await AuthController.verifyToken(accessToken, "access");
     if (!userId) {
       return { req, res };
     }

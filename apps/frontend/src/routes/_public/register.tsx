@@ -1,39 +1,39 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { useMutation } from '@tanstack/react-query'
 import { trpc } from '@/router'
-// import { useAuth } from '@/contexts/AuthContext'
 
-export const Route = createFileRoute('/_public/login')({
-  component: LoginComponent,
+export const Route = createFileRoute('/_public/register')({
+  component: RegisterComponent,
 })
 
-const loginSchema = z.object({
+const registerSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(6),
 })
-// type FormData = z.infer<typeof loginSchema>
+type FormData = z.infer<typeof registerSchema>
 
-function LoginComponent() {
-  // const auth = useAuth()
+function RegisterComponent() {
   const router = useRouter()
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(registerSchema),
   })
-  const loginMutation = useMutation(
-    trpc.auth.login.mutationOptions({
-      onSuccess: async () => {
-        await router.invalidate()
-        // console.log('Did it!')
+
+  const registerMutation = useMutation(
+    trpc.auth.register.mutationOptions({
+      onSuccess() {
+        router.invalidate()
       },
       onError(error) {
-        alert(error.message)
+        alert(`Registration failed: ${error.message}`)
       },
     }),
   )
@@ -41,9 +41,23 @@ function LoginComponent() {
   return (
     <form
       className="py-4"
-      onSubmit={handleSubmit((data) => loginMutation.mutate(data))}
+      onSubmit={handleSubmit((data: FormData) =>
+        registerMutation.mutateAsync(data),
+      )}
     >
       <div className="flex gap-2">
+        <label htmlFor="firstName">First Name:</label>
+        <input
+          id="firstName"
+          className="border border-black/20"
+          {...register('firstName')}
+        />
+        <label htmlFor="lastName">Last Name:</label>
+        <input
+          id="lastName"
+          className="border border-black/20"
+          {...register('lastName')}
+        />
         <label htmlFor="email">Email:</label>
         <input
           id="email"

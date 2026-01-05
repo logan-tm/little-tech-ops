@@ -1,5 +1,6 @@
 import * as trpcExpress from "@trpc/server/adapters/express";
 import express from "express";
+import cors from "cors";
 import { appRouter } from "./router";
 import { createContext } from "./trpc";
 
@@ -8,6 +9,7 @@ process.on("uncaughtException", function (err) {
 });
 
 const app = express();
+app.use(cors({ credentials: true }));
 app.use(
   "/trpc",
   trpcExpress.createExpressMiddleware({

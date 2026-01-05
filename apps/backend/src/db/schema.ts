@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+// import { relations } from "drizzle-orm";
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 
@@ -30,30 +30,30 @@ export const insertUserSchema = createInsertSchema(usersTable).omit({
 // ======================================================
 // Transactions Table
 
-export const transactionsTable = sqliteTable("transactions_table", {
-  id: int().primaryKey({ autoIncrement: true }),
-  userId: int()
-    .references(() => usersTable.id, { onDelete: "cascade" })
-    .notNull(),
-});
+// export const transactionsTable = sqliteTable("transactions_table", {
+//   id: int().primaryKey({ autoIncrement: true }),
+//   userId: int()
+//     .references(() => usersTable.id, { onDelete: "cascade" })
+//     .notNull(),
+// });
 
-export const insertTransactionSchema = createInsertSchema(
-  transactionsTable
-).omit({
-  id: true,
-  userId: true,
-});
+// export const insertTransactionSchema = createInsertSchema(
+//   transactionsTable
+// ).omit({
+//   id: true,
+//   userId: true,
+// });
 
 // ======================================================
 // Relationships
 
-export const userRelations = relations(usersTable, ({ many }) => ({
-  transactions: many(transactionsTable),
-}));
+// export const userRelations = relations(usersTable, ({ many }) => ({
+//   transactions: many(transactionsTable),
+// }));
 
-export const transactionRelations = relations(transactionsTable, ({ one }) => ({
-  user: one(usersTable, {
-    fields: [transactionsTable.userId],
-    references: [usersTable.id],
-  }),
-}));
+// export const transactionRelations = relations(transactionsTable, ({ one }) => ({
+//   user: one(usersTable, {
+//     fields: [transactionsTable.userId],
+//     references: [usersTable.id],
+//   }),
+// }));

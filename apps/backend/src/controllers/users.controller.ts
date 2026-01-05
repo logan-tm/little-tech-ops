@@ -15,6 +15,15 @@ export default class UsersController {
       .get();
   }
 
+  static async getUserByEmail(email: string) {
+    return await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, email))
+      .limit(1)
+      .get();
+  }
+
   static async createUser(input: typeof usersTable.$inferInsert) {
     await db.insert(usersTable).values(input);
     return { message: "User created successfully" };

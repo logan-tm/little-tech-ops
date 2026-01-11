@@ -1,15 +1,16 @@
 import Cookies, { type SetOption } from "cookies";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { drizzle } from "drizzle-orm/libsql";
-import { eq, type InferSelectModel } from "drizzle-orm";
-import { redis } from "../cache/redis";
-import { usersTable } from "../db/schema";
 import type { AuthenticatedContext, Context } from "../trpc";
 import UsersController from "./users.controller";
-import UnauthorizedError from "../lib/errors/UnauthorizedError";
+import { UnauthorizedError } from "../lib/errors";
 
-const db = drizzle(process.env.DB_FILE_NAME!);
+import { CacheController } from "./cache.controller";
+
+interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+}
 
 const cookieOptions: SetOption = {
   httpOnly: true,
@@ -28,136 +29,126 @@ const refreshTokenCookieOptions: SetOption = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
-class TokenController {
-  static verifyToken(token: string, type: "access" | "refresh" = "access") {
-    try {
-      const decoded = jwt.verify(
-        token,
-        type === "access"
-          ? process.env.JWT_ACCESS_TOKEN_SECRET!
-          : process.env.JWT_REFRESH_TOKEN_SECRET!
-      ) as { userId: number };
-
-      if (!decoded || !decoded.userId) {
-        return null;
-      }
-
-      return decoded.userId;
-    } catch (error) {
-      throw new Error(`Token verification failed: ${(error as Error).message}`);
-    }
-  }
-
-  static createAccessToken(userId: number) {
-    return jwt.sign({ userId }, process.env.JWT_ACCESS_TOKEN_SECRET!, {
-      expiresIn: "15m",
+export default class AuthController {
+  private static getCookies(ctx: Context) {
+    return new Cookies(ctx.req, ctx.res, {
+      secure: process.env.NODE_ENV === "production",
     });
   }
 
-  static createRefreshToken(userId: number) {
-    const token = jwt.sign({ userId }, process.env.JWT_REFRESH_TOKEN_SECRET!);
-    return token;
+  private static setCookies(ctx: Context, tokens: AuthTokens) {
+    const cookies = this.getCookies(ctx);
+    cookies.set("accessToken", tokens.accessToken, {
+      ...accessTokenCookieOptions,
+    });
+    cookies.set("refreshToken", tokens.refreshToken, {
+      ...refreshTokenCookieOptions,
+    });
+    cookies.set("loggedIn", "true", { ...accessTokenCookieOptions });
   }
 
-  static async setRefreshTokenCache(
-    token: string,
-    user: InferSelectModel<typeof usersTable>
-  ) {
-    await redis.set(
-      `refresh_token:${token}`,
-      JSON.stringify(user),
-      "EX",
-      7 * 24 * 60 * 60 // 7 days
-    );
-
-    await redis.sadd(`refresh_tokens:${user.id}`, token);
-    await redis.expire(`refresh_tokens:${user.id}`, 7 * 24 * 60 * 60); // 7 days
-
-    await redis.set(
-      `user:${user.id}`,
-      JSON.stringify(user),
-      "EX",
-      7 * 24 * 60 * 60
-    ); // 7 days
+  private static clearCookies(ctx: Context) {
+    const cookies = this.getCookies(ctx);
+    cookies.set("accessToken", "", {
+      ...accessTokenCookieOptions,
+    });
+    cookies.set("refreshToken", "", {
+      ...refreshTokenCookieOptions,
+    });
+    cookies.set("loggedIn", "false", { ...accessTokenCookieOptions });
   }
-}
 
-export default class AuthController {
-  static async login(input: { email: string; password: string }, ctx: Context) {
+  static async login(
+    input: { email: string; password: string },
+    ctx: Context
+  ): Promise<void> {
     try {
       const { email, password } = input;
       const user = await UsersController.getUserByEmail(email);
 
       if (!user) {
-        throw new UnauthorizedError("Invalid email or password.");
+        throw UnauthorizedError("Invalid email or password.");
       }
 
       if (!bcrypt.compareSync(password, user.passwordHash)) {
-        throw new UnauthorizedError("Invalid email or password");
+        throw UnauthorizedError("Invalid email or password");
       }
 
-      const accessToken = TokenController.createAccessToken(user.id);
+      const tokens = await CacheController.generateTokens(user, ctx.req);
+      this.setCookies(ctx, tokens);
+    } catch (error) {
+      console.error("Login error:", (error as Error).message);
+      throw error;
+    }
+  }
 
-      const refreshToken = TokenController.createRefreshToken(user.id);
+  static async refresh(ctx: AuthenticatedContext): Promise<void> {
+    try {
+      const cookies = this.getCookies(ctx);
+      const refreshToken = cookies.get("refreshToken");
+      if (!refreshToken) {
+        throw UnauthorizedError("Refresh token required.");
+      }
 
-      TokenController.setRefreshTokenCache(refreshToken, user);
+      const { verified, payload } =
+        CacheController.verifyRefreshToken(refreshToken);
+      if (!verified || !payload?.tokenId) {
+        throw UnauthorizedError("Invalid token.");
+      }
 
-      const cookies = new Cookies(ctx.req, ctx.res, {
-        secure: process.env.NODE_ENV === "production",
-      });
+      const tokenData = await CacheController.getRefreshToken(payload.tokenId);
+      if (!tokenData) {
+        throw UnauthorizedError("Token revoked or expired.");
+      }
+
+      const user = await UsersController.getUserById(
+        parseInt(tokenData.userId)
+      );
+      if (!user) {
+        throw UnauthorizedError("User not found.");
+      }
+
+      const accessToken = CacheController.generateAccessToken(user);
       cookies.set("accessToken", accessToken, {
         ...accessTokenCookieOptions,
       });
-      cookies.set("refreshToken", refreshToken, {
-        ...refreshTokenCookieOptions,
-      });
-      cookies.set("loggedIn", "true", { ...accessTokenCookieOptions });
-
-      return { message: "Login successful" };
     } catch (error) {
-      console.warn("Caught an unexpected error type, re-throwing...");
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw UnauthorizedError("Invalid refresh token.");
+      }
+      console.error("Refresh error:", (error as Error).message);
       throw error;
     }
   }
 
   static async logout(ctx: AuthenticatedContext) {
-    const { req, res, user } = ctx;
     try {
-      const cookies = new Cookies(req, res, {
-        secure: process.env.NODE_ENV === "production",
-      });
+      const cookies = this.getCookies(ctx);
       const refreshToken = cookies.get("refreshToken");
 
-      if (refreshToken) {
-        await redis.del(`refresh_token:${refreshToken}`);
-        await redis.srem(`refresh_tokens:${user.id}`, refreshToken);
+      if (!refreshToken) {
+        throw UnauthorizedError("Refresh token required");
       }
-      cookies.set("accessToken", "", { ...accessTokenCookieOptions });
-      cookies.set("refreshToken", "", { ...refreshTokenCookieOptions });
-      cookies.set("loggedIn", "false", { ...accessTokenCookieOptions });
+
+      const { verified, payload } =
+        CacheController.verifyRefreshToken(refreshToken);
+
+      if (verified && payload.tokenId) {
+        await CacheController.deleteRefreshToken(payload.tokenId);
+      }
+      this.clearCookies(ctx);
     } catch (error) {
-      throw new Error(`Logout failed: ${(error as Error).message}`);
+      console.error("Logout error:", (error as Error).message);
+      throw error;
     }
   }
 
   static async logoutAllSessions(ctx: AuthenticatedContext) {
-    const { req, res, user } = ctx;
+    const { user } = ctx;
     try {
-      const refreshTokens = await redis.smembers(`refresh_tokens:${user.id}`);
-      const pipeline = redis.pipeline();
-      refreshTokens.forEach((token) => {
-        pipeline.del(`refresh_token:${token}`);
-      });
-      pipeline.del(`refresh_tokens:${user.id}`);
-      pipeline.del(`user:${user.id}`);
-      await pipeline.exec();
+      await CacheController.revokeUserTokens(user.id.toString());
 
-      const cookies = new Cookies(req, res, {
-        secure: process.env.NODE_ENV === "production",
-      });
-      cookies.set("accessToken", "", { ...accessTokenCookieOptions });
-      cookies.set("refreshToken", "", { ...refreshTokenCookieOptions });
-      cookies.set("loggedIn", "false", { ...accessTokenCookieOptions });
+      this.clearCookies(ctx);
     } catch (error) {
       throw new Error(
         `Logout all sessions failed: ${(error as Error).message}`
@@ -165,30 +156,27 @@ export default class AuthController {
     }
   }
 
-  static async verifyToken(
-    token: string,
-    type: "access" | "refresh" = "access"
-  ) {
-    return TokenController.verifyToken(token, type);
-  }
-
-  static async register(input: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-  }) {
+  static async register(
+    input: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+    },
+    ctx: Context
+  ): Promise<void> {
     const { firstName, lastName, email, password } = input;
 
     const existingUser = await UsersController.getUserByEmail(email);
 
     if (existingUser) {
+      // TODO: create new error type for this
       throw new Error("User with this email already exists.");
     }
 
     const passwordHash = bcrypt.hashSync(password, 10);
 
-    await UsersController.createUser({
+    const user = await UsersController.createUser({
       firstName,
       lastName,
       email,
@@ -196,36 +184,9 @@ export default class AuthController {
       role: "user",
     });
 
-    return { message: "Registration successful" };
-  }
+    const tokens = await CacheController.generateTokens(user, ctx.req);
 
-  static async refreshAccessToken(input: string, ctx: AuthenticatedContext) {
-    try {
-      const tokenExists = await redis.get(`refresh_token:${input}`);
-      if (!tokenExists) {
-        throw new Error("Invalid refresh token");
-      }
-
-      // verify the refresh token and gather userId
-      const userId = TokenController.verifyToken(input, "refresh");
-      if (!userId || userId.toString() !== ctx.user.id.toString()) {
-        throw new Error("Invalid refresh token");
-      }
-
-      const accessToken = TokenController.createAccessToken(userId);
-
-      const cookies = new Cookies(ctx.req, ctx.res, {
-        secure: process.env.NODE_ENV === "production",
-      });
-      cookies.set("accessToken", accessToken, {
-        ...accessTokenCookieOptions,
-      });
-      cookies.set("loggedIn", "true", { ...accessTokenCookieOptions });
-
-      return accessToken;
-    } catch (error) {
-      throw new Error(`Token refresh failed: ${(error as Error).message}`);
-    }
+    this.setCookies(ctx, tokens);
   }
 
   static getUser(ctx: AuthenticatedContext) {

@@ -29,21 +29,11 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      await AuthController.register(input).then(async () => {
-        await AuthController.login(
-          {
-            email: input.email,
-            password: input.password,
-          },
-          ctx
-        );
-      });
+      await AuthController.register(input, ctx); // also logs user in
     }),
-  refreshAccessToken: protectedProcedure
-    .input(z.string())
-    .mutation(async ({ input, ctx }) => {
-      AuthController.refreshAccessToken(input, ctx);
-    }),
+  refreshAccessToken: protectedProcedure.mutation(async ({ ctx }) => {
+    await AuthController.refresh(ctx);
+  }),
   user: protectedProcedure.query(async ({ ctx }) => {
     return AuthController.getUser(ctx);
   }),

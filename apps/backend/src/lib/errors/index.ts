@@ -15,7 +15,7 @@ const TRPC_ERROR_CODES = [
 ] as const;
 type TRPC_ERROR_CODE_TYPE = (typeof TRPC_ERROR_CODES)[number];
 
-export default class CustomTrpcError {
+class CustomTrpcError {
   constructor(code: TRPC_ERROR_CODE_TYPE, message: string) {
     return new TRPCError({
       code,
@@ -26,3 +26,6 @@ export default class CustomTrpcError {
 
 export const InternalServerError = (message: string) =>
   new CustomTrpcError("INTERNAL_SERVER_ERROR", message);
+
+export const UnauthorizedError = (message: string) =>
+  new CustomTrpcError("FORBIDDEN", message);

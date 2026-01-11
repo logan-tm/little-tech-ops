@@ -25,7 +25,6 @@ export default class UsersController {
   }
 
   static async createUser(input: typeof usersTable.$inferInsert) {
-    await db.insert(usersTable).values(input);
-    return { message: "User created successfully" };
+    return await db.insert(usersTable).values(input).returning().get();
   }
 }

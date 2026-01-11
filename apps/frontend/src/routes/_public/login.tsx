@@ -30,7 +30,6 @@ function LoginComponent() {
     trpc.auth.login.mutationOptions({
       onSuccess: async () => {
         await router.invalidate()
-        // console.log('Did it!')
       },
       onError(error) {
         alert(error.message)

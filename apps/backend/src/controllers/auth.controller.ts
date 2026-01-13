@@ -1,121 +1,84 @@
-import Cookies, { type SetOption } from "cookies";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import type { AuthenticatedContext, Context } from "../trpc";
 import UsersController from "./users.controller";
 import { UnauthorizedError } from "../lib/errors";
 
 import { CacheController } from "./cache.controller";
 
-interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
-const cookieOptions: SetOption = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
-  path: "/",
-};
-
-const accessTokenCookieOptions: SetOption = {
-  ...cookieOptions,
-  maxAge: 15 * 60 * 1000, // 15 minutes
-};
-
-const refreshTokenCookieOptions: SetOption = {
-  ...cookieOptions,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-};
+import { CookieController } from "./cookie.controller";
 
 export default class AuthController {
-  private static getCookies(ctx: Context) {
-    return new Cookies(ctx.req, ctx.res, {
-      secure: process.env.NODE_ENV === "production",
-    });
-  }
-
-  private static setCookies(ctx: Context, tokens: AuthTokens) {
-    const cookies = this.getCookies(ctx);
-    cookies.set("accessToken", tokens.accessToken, {
-      ...accessTokenCookieOptions,
-    });
-    cookies.set("refreshToken", tokens.refreshToken, {
-      ...refreshTokenCookieOptions,
-    });
-    cookies.set("loggedIn", "true", { ...accessTokenCookieOptions });
-  }
-
-  private static clearCookies(ctx: Context) {
-    const cookies = this.getCookies(ctx);
-    cookies.set("accessToken", "", {
-      ...accessTokenCookieOptions,
-    });
-    cookies.set("refreshToken", "", {
-      ...refreshTokenCookieOptions,
-    });
-    cookies.set("loggedIn", "false", { ...accessTokenCookieOptions });
-  }
-
   static async login(
     input: { email: string; password: string },
     ctx: Context
   ): Promise<void> {
     try {
-      const { email, password } = input;
-      const user = await UsersController.getUserByEmail(email);
+      const { user, passwordCorrect } = await UsersController.checkLogin(
+        input.email,
+        input.password
+      );
 
-      if (!user) {
-        throw UnauthorizedError("Invalid email or password.");
-      }
-
-      if (!bcrypt.compareSync(password, user.passwordHash)) {
+      if (!user || !passwordCorrect) {
         throw UnauthorizedError("Invalid email or password");
       }
 
-      const tokens = await CacheController.generateTokens(user, ctx.req);
-      this.setCookies(ctx, tokens);
+      // Updates cache with refresh token
+      const { accessToken, refreshToken } =
+        await CacheController.generateTokens(user, ctx.req);
+
+      // Set the cookies for the client
+      CookieController.setAccessToken(ctx, accessToken);
+      CookieController.setRefreshToken(ctx, refreshToken);
+
+      console.log("SET COOKIES");
     } catch (error) {
       console.error("Login error:", (error as Error).message);
       throw error;
     }
   }
 
-  static async refresh(ctx: AuthenticatedContext): Promise<void> {
+  /**
+   * Cycles both the accessToken and refreshTokens. If a valid refresh token
+   * is not available, a 401 Unauthorized error is thrown
+   */
+  static async refresh(ctx: Context): Promise<void> {
     try {
-      const cookies = this.getCookies(ctx);
-      const refreshToken = cookies.get("refreshToken");
+      const { refreshToken } = CookieController.getCookieValues(
+        ctx.req,
+        ctx.res
+      );
       if (!refreshToken) {
-        throw UnauthorizedError("Refresh token required.");
+        throw UnauthorizedError("Refresh token required");
       }
 
       const { verified, payload } =
         CacheController.verifyRefreshToken(refreshToken);
-      if (!verified || !payload?.tokenId) {
-        throw UnauthorizedError("Invalid token.");
+      if (!verified || !payload?.sessionId) {
+        throw UnauthorizedError("Invalid refresh token");
       }
 
-      const tokenData = await CacheController.getRefreshToken(payload.tokenId);
+      const tokenData = await CacheController.getRefreshToken(
+        payload.sessionId
+      );
       if (!tokenData) {
-        throw UnauthorizedError("Token revoked or expired.");
+        throw UnauthorizedError("Token revoked or expired");
       }
 
       const user = await UsersController.getUserById(
         parseInt(tokenData.userId)
       );
       if (!user) {
-        throw UnauthorizedError("User not found.");
+        throw UnauthorizedError("Invalid refresh token");
       }
 
-      const accessToken = CacheController.generateAccessToken(user);
-      cookies.set("accessToken", accessToken, {
-        ...accessTokenCookieOptions,
-      });
+      await CacheController.deleteRefreshToken(tokenData.sessionId);
+      const tokens = await CacheController.generateTokens(user, ctx.req);
+      CookieController.setAccessToken(ctx, tokens.accessToken);
+      CookieController.setRefreshToken(ctx, tokens.refreshToken);
     } catch (error) {
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw UnauthorizedError("Invalid refresh token.");
-      }
+      // if (error instanceof jwt.JsonWebTokenError) {
+      //   throw UnauthorizedError("Invalid refresh token");
+      // }
       console.error("Refresh error:", (error as Error).message);
       throw error;
     }
@@ -123,20 +86,11 @@ export default class AuthController {
 
   static async logout(ctx: AuthenticatedContext) {
     try {
-      const cookies = this.getCookies(ctx);
-      const refreshToken = cookies.get("refreshToken");
-
-      if (!refreshToken) {
-        throw UnauthorizedError("Refresh token required");
-      }
-
-      const { verified, payload } =
-        CacheController.verifyRefreshToken(refreshToken);
-
-      if (verified && payload.tokenId) {
-        await CacheController.deleteRefreshToken(payload.tokenId);
-      }
-      this.clearCookies(ctx);
+      const {
+        session: { id },
+      } = ctx;
+      await CacheController.deleteRefreshToken(id);
+      CookieController.clearCookies(ctx);
     } catch (error) {
       console.error("Logout error:", (error as Error).message);
       throw error;
@@ -144,11 +98,12 @@ export default class AuthController {
   }
 
   static async logoutAllSessions(ctx: AuthenticatedContext) {
-    const { user } = ctx;
+    const {
+      session: { user },
+    } = ctx;
     try {
       await CacheController.revokeUserTokens(user.id.toString());
-
-      this.clearCookies(ctx);
+      CookieController.clearCookies(ctx);
     } catch (error) {
       throw new Error(
         `Logout all sessions failed: ${(error as Error).message}`
@@ -184,26 +139,12 @@ export default class AuthController {
       role: "user",
     });
 
-    const tokens = await CacheController.generateTokens(user, ctx.req);
+    const { accessToken, refreshToken } = await CacheController.generateTokens(
+      user,
+      ctx.req
+    );
 
-    this.setCookies(ctx, tokens);
-  }
-
-  static getUser(ctx: AuthenticatedContext) {
-    // Example user as if fetched from database
-    const user = {
-      id: ctx.user.id,
-      firstName: ctx.user.firstName,
-      lastName: ctx.user.lastName,
-      email: ctx.user.email,
-      role: ctx.user.role,
-      permissions: [
-        "read_articles",
-        "write_articles",
-        "delete_comments",
-        "ban_users",
-      ],
-    };
-    return user;
+    CookieController.setAccessToken(ctx, accessToken);
+    CookieController.setRefreshToken(ctx, refreshToken);
   }
 }

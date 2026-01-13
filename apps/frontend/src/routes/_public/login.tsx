@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { trpc } from '@/router'
+import { trpc, trpcUtils } from '@/router'
 // import { useAuth } from '@/contexts/AuthContext'
 
 export const Route = createFileRoute('/_public/login')({
@@ -29,6 +29,7 @@ function LoginComponent() {
   const loginMutation = useMutation(
     trpc.auth.login.mutationOptions({
       onSuccess: async () => {
+        await trpcUtils.auth.isAuthenticated.refetch()
         await router.invalidate()
       },
       onError(error) {

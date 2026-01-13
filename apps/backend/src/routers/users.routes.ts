@@ -1,28 +1,22 @@
 import { z } from "zod/v3";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, router } from "../trpc";
 
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/libsql";
-import { eq } from "drizzle-orm";
-import { usersTable, insertUserSchema } from "../db/schema";
+import { insertUserSchema } from "../db/schema";
 import UsersController from "../controllers/users.controller";
 
-const db = drizzle(process.env.DB_FILE_NAME!);
-
 export const usersRouter = router({
-  list: publicProcedure.query(async () => await db.select().from(usersTable)),
-  getById: publicProcedure
+  list: protectedProcedure.query(async () => await UsersController.listUsers()),
+  getById: protectedProcedure
     .input(z.number())
     .query(async ({ input }) => await UsersController.getUserById(input)),
-  create: publicProcedure
+  create: protectedProcedure
     .input(insertUserSchema.strict())
     .mutation(async ({ input }) => await UsersController.createUser(input)),
-  remove: publicProcedure
+  remove: protectedProcedure
     .input(z.number())
-    .mutation(async (opts) =>
-      db.delete(usersTable).where(eq(usersTable.id, opts.input))
-    ),
-  update: publicProcedure
+    .mutation(async (opts) => await UsersController.deleteUser(opts.input)),
+  update: protectedProcedure
     .input(
       z.object({
         id: z.number(),
@@ -35,9 +29,6 @@ export const usersRouter = router({
     )
     .mutation(async (opts) => {
       const { id, ...updateData } = opts.input;
-      return await db
-        .update(usersTable)
-        .set(updateData)
-        .where(eq(usersTable.id, id));
+      return await UsersController.updateUser(id, updateData);
     }),
 });

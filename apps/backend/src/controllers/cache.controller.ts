@@ -1,24 +1,25 @@
 import jwt from "jsonwebtoken";
 
-import { usersTable } from "../db/schema";
-
 import { redis } from "../cache/redis";
-import { Context } from "../trpc";
+import type { Context } from "../trpc";
 import { randomUUID } from "crypto";
-import { InferSelectModel } from "drizzle-orm";
+import config from "../lib/config";
+import type { User } from "./users.controller";
 
 interface JWTPayload {
-  id: string;
-  tokenId?: string;
+  user: User;
+  sessionId: string;
 }
 
 type JWTVerifyBadResult = {
   verified: false;
+  expired: boolean;
   payload: null;
 };
 
 type JWTVerifyGoodResult = {
   verified: true;
+  expired: false;
   payload: JWTPayload;
 };
 
@@ -26,13 +27,20 @@ type JWTVerifyResult = JWTVerifyGoodResult | JWTVerifyBadResult;
 
 interface RefreshTokenData {
   userId: string;
-  tokenId: string;
+  sessionId: string;
   createdAt: number;
   expiresAt: number;
   userAgent?: string;
   ipAddress?: string;
 }
 
+/**
+ * Responsible for handling connections to redis, as well as
+ * managing tokens.
+ *
+ * When an access token is issued, a brand new refresh token is also
+ * issued.
+ */
 export class CacheController {
   /**
    * Create an entry for the refresh key and a set for the user's id.
@@ -47,7 +55,7 @@ export class CacheController {
    * user_tokens:user2          → Set { "xyz-456" }
    */
   static async storeRefreshToken(data: RefreshTokenData): Promise<void> {
-    const key = `refresh_token:${data.tokenId}`;
+    const key = `refresh_token:${data.sessionId}`;
     const userKey = `user_tokens:${data.userId}`;
     const ttl = Math.floor((data.expiresAt - Date.now()) / 1000);
 
@@ -61,21 +69,21 @@ export class CacheController {
 
     await redis.expire(key, ttl);
 
-    await redis.sadd(userKey, data.tokenId);
-    await redis.expire(userKey, ttl);
+    await redis.sadd(userKey, data.sessionId);
+    await redis.expire(userKey, ttl); // Expires the set after the most recent refresh key expires
   }
 
   static async getRefreshToken(
-    tokenId: string
+    sessionId: string
   ): Promise<RefreshTokenData | null> {
-    const key = `refresh_token:${tokenId}`;
+    const key = `refresh_token:${sessionId}`;
     const data = await redis.hgetall(key);
 
     if (!data || !data.userId) return null;
 
     return {
       userId: data.userId,
-      tokenId,
+      sessionId,
       createdAt: parseInt(data.createdAt),
       expiresAt: parseInt(data.expiresAt),
       userAgent: data.userAgent,
@@ -83,32 +91,32 @@ export class CacheController {
     };
   }
 
-  static async deleteRefreshToken(tokenId: string): Promise<void> {
-    const data = await CacheController.getRefreshToken(tokenId);
+  static async deleteRefreshToken(sessionId: string): Promise<void> {
+    const data = await CacheController.getRefreshToken(sessionId);
     if (data) {
-      await redis.srem(`user_tokens:${data.userId}`, tokenId);
+      await redis.srem(`user_tokens:${data.userId}`, sessionId);
     }
-    await redis.del(`refresh_token:${tokenId}`);
+    await redis.del(`refresh_token:${sessionId}`);
   }
 
   static async revokeUserTokens(userId: string): Promise<void> {
     const userKey = `user_tokens:${userId}`;
-    const tokenIds = await redis.smembers(userKey);
+    const sessionIds = await redis.smembers(userKey);
 
     const pipeline = redis.multi();
-    for (const tokenId of tokenIds) {
-      pipeline.del(`refresh_token:${tokenId}`);
+    for (const sessionId of sessionIds) {
+      pipeline.del(`refresh_token:${sessionId}`);
     }
     pipeline.del(userKey);
     await pipeline.exec();
   }
 
   static async getUserTokens(userId: string): Promise<RefreshTokenData[]> {
-    const tokenIds = await redis.smembers(`user_tokens:${userId}`);
+    const sessionIds = await redis.smembers(`user_tokens:${userId}`);
     const tokens: RefreshTokenData[] = [];
 
-    for (const tokenId of tokenIds) {
-      const token = await this.getRefreshToken(tokenId);
+    for (const sessionId of sessionIds) {
+      const token = await this.getRefreshToken(sessionId);
       if (token) tokens.push(token);
     }
 
@@ -119,14 +127,17 @@ export class CacheController {
     try {
       return {
         verified: true,
+        expired: false,
         payload: jwt.verify(
           token,
-          process.env.JWT_ACCESS_TOKEN_SECRET!
+          config.JWT_ACCESS_TOKEN_SECRET
         ) as JWTPayload,
       };
     } catch (error) {
+      const err = error as { name: string; message: string };
       return {
         verified: false,
+        expired: err.name === "TokenExpiredError",
         payload: null,
       };
     }
@@ -136,33 +147,36 @@ export class CacheController {
     try {
       return {
         verified: true,
+        expired: false,
         payload: jwt.verify(
           token,
-          process.env.JWT_REFRESH_TOKEN_SECRET!
+          config.JWT_REFRESH_TOKEN_SECRET
         ) as JWTPayload,
       };
     } catch (error) {
+      const err = error as { name: string; message: string };
       return {
         verified: false,
+        expired: err.name === "TokenExpiredError",
         payload: null,
       };
     }
   }
 
-  static async generateTokens(
-    user: InferSelectModel<typeof usersTable>,
-    req: Context["req"]
-  ) {
-    const tokenId = randomUUID();
+  static async generateTokens(user: User, req: Context["req"]) {
+    const sessionId = randomUUID();
 
-    const accessToken = this.generateAccessToken(user);
-    const refreshToken = this.generateRefreshToken(user.id.toString(), tokenId);
+    const accessToken = this.generateAccessToken(user, sessionId);
+    const refreshToken = this.generateRefreshToken(
+      user.id.toString(),
+      sessionId
+    );
 
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
 
     await CacheController.storeRefreshToken({
       userId: user.id.toString(),
-      tokenId,
+      sessionId,
       createdAt: Date.now(),
       expiresAt,
       userAgent: req.headers["user-agent"],
@@ -172,28 +186,15 @@ export class CacheController {
     return { accessToken, refreshToken };
   }
 
-  static generateAccessToken(
-    user: InferSelectModel<typeof usersTable>
-  ): string {
-    return jwt.sign(
-      {
-        id: user.id,
-        firstName: user.firstName,
-        email: user.email,
-        role: user.role,
-      },
-      process.env.JWT_ACCESS_TOKEN_SECRET!,
-      {
-        expiresIn: "15m",
-      }
-    );
+  static generateAccessToken(user: User, sessionId: string): string {
+    return jwt.sign({ user, sessionId }, config.JWT_ACCESS_TOKEN_SECRET, {
+      expiresIn: "15m",
+    });
   }
 
-  static generateRefreshToken(userId: string, tokenId: string): string {
-    return jwt.sign(
-      { userId, tokenId },
-      process.env.JWT_REFRESH_TOKEN_SECRET!,
-      { expiresIn: "7d" }
-    );
+  static generateRefreshToken(userId: string, sessionId: string): string {
+    return jwt.sign({ userId, sessionId }, config.JWT_REFRESH_TOKEN_SECRET, {
+      expiresIn: "7d",
+    });
   }
 }

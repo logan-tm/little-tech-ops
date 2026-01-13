@@ -21,6 +21,7 @@ export const usersTable = sqliteTable("users_table", {
     .$onUpdate(() => new Date().toISOString()),
 });
 
+// For zod schema validation
 export const insertUserSchema = createInsertSchema(usersTable).omit({
   id: true,
   createdAt: true,

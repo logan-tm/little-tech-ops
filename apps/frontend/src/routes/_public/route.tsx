@@ -1,19 +1,29 @@
-import { Link, Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  isRedirect,
+  redirect,
+} from '@tanstack/react-router'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_public')({
   validateSearch: z.object({
     redirect: z.string().optional().catch(''),
   }),
-  beforeLoad: async ({ context: { trpc, queryClient }, search }) => {
-    // Eventually, add an 'auth' context using useQuery on trpc.auth.user
-    const isAuthenticated = await queryClient.fetchQuery(
-      trpc.auth.isAuthenticated.queryOptions(),
-    )
-    if (isAuthenticated) {
-      throw redirect({ to: search.redirect || '/dashboard' })
+  beforeLoad: async ({ context: { trpcUtils }, search }) => {
+    try {
+      console.log("CHECKING AUTH IN 'PUBLIC'...")
+      const { isAuthenticated, session } =
+        await trpcUtils.auth.isAuthenticated.ensureData()
+      console.log('SESSION', session)
+      if (isAuthenticated) {
+        throw redirect({ to: search.redirect || '/dashboard' })
+      }
+    } catch (error) {
+      if (isRedirect(error)) throw error
+      console.log(error)
     }
-    console.log('isAuthenticated', isAuthenticated)
   },
   component: App,
 })
@@ -28,6 +38,7 @@ function App() {
           <Link
             to="/"
             className="hover:underline data-[status='active']:font-semibold"
+            // preload={false}
           >
             Home
           </Link>
@@ -36,6 +47,7 @@ function App() {
           <Link
             to="/login"
             className="hover:underline data-[status='active']:font-semibold"
+            // preload={false}
           >
             Login
           </Link>
@@ -44,6 +56,7 @@ function App() {
           <Link
             to="/register"
             className="hover:underline data-[status='active']:font-semibold"
+            // preload={false}
           >
             Register
           </Link>

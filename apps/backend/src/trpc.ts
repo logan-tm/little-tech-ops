@@ -1,79 +1,122 @@
 import { initTRPC } from "@trpc/server";
-import Cookies from "cookies";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import { redis } from "./cache/redis";
-import UsersController from "./controllers/users.controller";
 import { CacheController } from "./controllers/cache.controller";
+import {
+  TokenExpiredError,
+  UnauthorizedError,
+  type AppErrorCode,
+} from "./lib/errors";
+import { CookieController } from "./controllers/cookie.controller";
+import type { UserSession, VerifiedUserSession } from "./types";
+import AuthController from "./controllers/auth.controller";
 
 export const createContext = async ({
   req,
   res,
 }: trpcExpress.CreateExpressContextOptions) => {
-  try {
-    const cookies = new Cookies(req, res);
-    const accessToken = cookies.get("accessToken");
-    if (!accessToken) {
-      console.log("NO ACCESS TOKEN");
-      return { req, res };
-    }
+  // Pass on the req and res objects to the Context
+  // while checking an access token, if any
 
-    const { verified, payload } =
+  const { accessToken, refreshToken } = CookieController.getCookieValues(
+    req,
+    res
+  );
+
+  if (!!accessToken) {
+    // Happy path!
+    const { verified, expired, payload } =
       CacheController.verifyAccessToken(accessToken);
-    if (!verified || !payload.id) {
-      console.log("NO USER ID");
+
+    const session: UserSession = {
+      id: payload?.sessionId || null,
+      user: payload?.user || null,
+      verified,
+      expired,
+    };
+
+    return {
+      req,
+      res,
+      session,
+    };
+  } else {
+    if (!refreshToken) {
+      // Never logged in
       return { req, res };
+    } else {
+      // Logged in, but auth token expired. Attempt refresh
+      try {
+        await AuthController.refresh({ req, res });
+        const { accessToken: accessTokenAfterRefresh } =
+          CookieController.getCookieValues(req, res);
+        const { verified, expired, payload } =
+          CacheController.verifyAccessToken(accessTokenAfterRefresh!);
+        const session: UserSession = {
+          id: payload?.sessionId || null,
+          user: payload?.user || null,
+          verified,
+          expired,
+        };
+        return {
+          req,
+          res,
+          session,
+        };
+      } catch (error) {
+        console.log(`Error during refresh! ${(error as Error).message}`);
+        return { req, res };
+      }
     }
-
-    console.log("BEFORE REDIS");
-    const session = await redis.get(`user_tokens:${payload.id}`);
-    if (!session) {
-      console.log("NO REDIS SESSION");
-      return { req, res };
-    }
-    console.log("AFTER REDIS");
-
-    // We don't want to ping the database every time we get a request
-    // Verifying the access token (and the user data in it) will be enough
-    // const user = await UsersController.getUserById(parseInt(payload.id));
-    // if (!user) {
-    //   console.log("NO USER IN DB");
-    //   return { req, res };
-    // }
-
-    return { req, res, user: payload };
-  } catch (error) {
-    throw new Error(`Context creation failed: ${(error as Error).message}`);
   }
 };
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
 export type AuthenticatedContext = Context & {
-  user: NonNullable<Context["user"]>;
+  session: VerifiedUserSession;
 };
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  errorFormatter({ shape, error }) {
+    let customCode: AppErrorCode = shape.data.code;
 
-const isAuthenticated = t.middleware(({ ctx, next }) => {
-  /**
-   * 1. Get access token and verify it
-   *    - if it doesn't exist, throw forbidden error
-   *    - if it does exist but it's expired, attempt refresh
-   *        - if refresh is successful, continue
-   *        - if refresh fails, throw error (no available session) (tells user to log in again)
-   *    - if user is found in cache, use it and finish
-   *    - if user is not in cache, pull from db
-   *    - if user exists in db, cache it and continue
-   *    - if user doesn't exist, throw error and invalidate all sessions in cache
-   */
-  if (!ctx.user) {
-    throw new Error("Unauthorized");
+    if (error.cause && (error.cause as any).code === "TOKEN_EXPIRED") {
+      customCode = "TOKEN_EXPIRED";
+    }
+
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        code: customCode,
+      },
+    };
+  },
+});
+
+const isAuthenticated = t.middleware(async ({ ctx, next }) => {
+  try {
+    // Only use unauthorized here. The client will attempt a refresh if necessary
+
+    const { session } = ctx;
+
+    if (!session || !session.verified || !session.user) {
+      throw UnauthorizedError("No valid access token");
+    }
+
+    if (session.expired) {
+      throw TokenExpiredError("Access token expired");
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+      } as AuthenticatedContext,
+    });
+  } catch (error) {
+    throw UnauthorizedError(
+      `Authenticated route failed: ${(error as Error).message}`
+    );
   }
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,
-    },
-  });
 });
 
 export const router = t.router;

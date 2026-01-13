@@ -3,7 +3,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import { trpc } from '@/router'
+import { trpc, trpcUtils } from '@/router'
 
 export const Route = createFileRoute('/_public/register')({
   component: RegisterComponent,
@@ -29,8 +29,9 @@ function RegisterComponent() {
 
   const registerMutation = useMutation(
     trpc.auth.register.mutationOptions({
-      onSuccess() {
-        router.invalidate()
+      onSuccess: async () => {
+        await trpcUtils.auth.isAuthenticated.refetch()
+        await router.invalidate()
       },
       onError(error) {
         alert(`Registration failed: ${error.message}`)

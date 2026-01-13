@@ -1,25 +1,18 @@
 import { TRPCError } from "@trpc/server";
+import type { TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
 
-const TRPC_ERROR_CODES = [
-  "BAD_REQUEST", // 400
-  "UNAUTHORIZED", // 401
-  "FORBIDDEN", // 403
-  "NOT_FOUND", // 404
-  "TIMEOUT", // 408
-  "CONFLICT", // 409
-  "PRECONDITION_FAILED", // 412
-  "PAYLOAD_TOO_LARGE", // 413
-  "METHOD_NOT_SUPPORTED", // 405
-  "CLIENT_CLOSED_REQUEST", // 499
-  "INTERNAL_SERVER_ERROR", // 500
-] as const;
-type TRPC_ERROR_CODE_TYPE = (typeof TRPC_ERROR_CODES)[number];
+export type AppErrorCode = TRPC_ERROR_CODE_KEY | "TOKEN_EXPIRED";
 
 class CustomTrpcError {
-  constructor(code: TRPC_ERROR_CODE_TYPE, message: string) {
+  constructor(
+    code: TRPC_ERROR_CODE_KEY,
+    message: string,
+    data?: Record<string, any>
+  ) {
     return new TRPCError({
       code,
       message,
+      cause: data,
     });
   }
 }
@@ -28,4 +21,11 @@ export const InternalServerError = (message: string) =>
   new CustomTrpcError("INTERNAL_SERVER_ERROR", message);
 
 export const UnauthorizedError = (message: string) =>
+  new CustomTrpcError("UNAUTHORIZED", message);
+
+export const ForbiddenError = (message: string) =>
   new CustomTrpcError("FORBIDDEN", message);
+
+// Custom code handled in context creation
+export const TokenExpiredError = (message: string) =>
+  new CustomTrpcError("UNAUTHORIZED", message, { code: "TOKEN_EXPIRED" });

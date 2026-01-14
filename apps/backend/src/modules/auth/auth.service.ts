@@ -1,19 +1,19 @@
 import bcrypt from "bcryptjs";
-import type { AuthenticatedContext, Context } from "../trpc";
-import UsersController from "./users.controller";
-import { UnauthorizedError } from "../lib/errors";
+import type { AuthenticatedContext, Context } from "../../trpc";
+import { UnauthorizedError } from "../../lib/errors";
 
-import { CacheController } from "./cache.controller";
+import { cacheService } from "../cache/cache.service";
 
-import { CookieController } from "./cookie.controller";
+import { cookieService } from "../cookie/cookie.service";
+import { userService } from "../user/user.service";
 
-export default class AuthController {
-  static async login(
+export const authService = {
+  async login(
     input: { email: string; password: string },
     ctx: Context
   ): Promise<void> {
     try {
-      const { user, passwordCorrect } = await UsersController.checkLogin(
+      const { user, passwordCorrect } = await userService.checkLogin(
         input.email,
         input.password
       );
@@ -23,58 +23,53 @@ export default class AuthController {
       }
 
       // Updates cache with refresh token
-      const { accessToken, refreshToken } =
-        await CacheController.generateTokens(user, ctx.req);
+      const { accessToken, refreshToken } = await cacheService.generateTokens(
+        user,
+        ctx.req
+      );
 
       // Set the cookies for the client
-      CookieController.setAccessToken(ctx, accessToken);
-      CookieController.setRefreshToken(ctx, refreshToken);
+      cookieService.setAccessToken(ctx, accessToken);
+      cookieService.setRefreshToken(ctx, refreshToken);
     } catch (error) {
       console.error("Login error:", (error as Error).message);
       throw error;
     }
-  }
+  },
 
   /**
    * Cycles both the accessToken and refreshTokens. If a valid refresh token
    * is not available, a 401 Unauthorized error is thrown
    */
-  static async refresh(
+  async refresh(
     ctx: Context
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
-      const { refreshToken } = CookieController.getCookieValues(
-        ctx.req,
-        ctx.res
-      );
+      const { refreshToken } = cookieService.getCookieValues(ctx.req, ctx.res);
       if (!refreshToken) {
         throw UnauthorizedError("Refresh token required");
       }
 
       const { verified, payload } =
-        CacheController.verifyRefreshToken(refreshToken);
+        cacheService.verifyRefreshToken(refreshToken);
       if (!verified || !payload?.sessionId) {
         throw UnauthorizedError("Invalid refresh token");
       }
 
-      const tokenData = await CacheController.getRefreshToken(
-        payload.sessionId
-      );
+      const tokenData = await cacheService.getRefreshToken(payload.sessionId);
       if (!tokenData) {
         throw UnauthorizedError("Token revoked or expired");
       }
 
-      const user = await UsersController.getUserById(
-        parseInt(tokenData.userId)
-      );
+      const user = await userService.getUserById(parseInt(tokenData.userId));
       if (!user) {
         throw UnauthorizedError("Invalid refresh token");
       }
 
-      await CacheController.deleteRefreshToken(tokenData.sessionId);
-      const tokens = await CacheController.generateTokens(user, ctx.req);
-      CookieController.setAccessToken(ctx, tokens.accessToken);
-      CookieController.setRefreshToken(ctx, tokens.refreshToken);
+      await cacheService.deleteRefreshToken(tokenData.sessionId);
+      const tokens = await cacheService.generateTokens(user, ctx.req);
+      cookieService.setAccessToken(ctx, tokens.accessToken);
+      cookieService.setRefreshToken(ctx, tokens.refreshToken);
       return tokens;
     } catch (error) {
       // if (error instanceof jwt.JsonWebTokenError) {
@@ -83,36 +78,36 @@ export default class AuthController {
       console.error("Refresh error:", (error as Error).message);
       throw error;
     }
-  }
+  },
 
-  static async logout(ctx: AuthenticatedContext) {
+  async logout(ctx: AuthenticatedContext) {
     try {
       const {
         session: { id },
       } = ctx;
-      await CacheController.deleteRefreshToken(id);
-      CookieController.clearCookies(ctx);
+      await cacheService.deleteRefreshToken(id);
+      cookieService.clearCookies(ctx);
     } catch (error) {
       console.error("Logout error:", (error as Error).message);
       throw error;
     }
-  }
+  },
 
-  static async logoutAllSessions(ctx: AuthenticatedContext) {
+  async logoutAllSessions(ctx: AuthenticatedContext) {
     const {
       session: { user },
     } = ctx;
     try {
-      await CacheController.revokeUserTokens(user.id.toString());
-      CookieController.clearCookies(ctx);
+      await cacheService.revokeUserTokens(user.id.toString());
+      cookieService.clearCookies(ctx);
     } catch (error) {
       throw new Error(
         `Logout all sessions failed: ${(error as Error).message}`
       );
     }
-  }
+  },
 
-  static async register(
+  async register(
     input: {
       firstName: string;
       lastName: string;
@@ -123,7 +118,7 @@ export default class AuthController {
   ): Promise<void> {
     const { firstName, lastName, email, password } = input;
 
-    const existingUser = await UsersController.getUserByEmail(email);
+    const existingUser = await userService.getUserByEmail(email);
 
     if (existingUser) {
       // TODO: create new error type for this
@@ -132,7 +127,7 @@ export default class AuthController {
 
     const passwordHash = bcrypt.hashSync(password, 10);
 
-    const user = await UsersController.createUser({
+    const user = await userService.createUser({
       firstName,
       lastName,
       email,
@@ -140,12 +135,12 @@ export default class AuthController {
       role: "user",
     });
 
-    const { accessToken, refreshToken } = await CacheController.generateTokens(
+    const { accessToken, refreshToken } = await cacheService.generateTokens(
       user,
       ctx.req
     );
 
-    CookieController.setAccessToken(ctx, accessToken);
-    CookieController.setRefreshToken(ctx, refreshToken);
-  }
-}
+    cookieService.setAccessToken(ctx, accessToken);
+    cookieService.setRefreshToken(ctx, refreshToken);
+  },
+};

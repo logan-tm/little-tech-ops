@@ -1,10 +1,10 @@
 import { initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import { CacheController } from "./controllers/cache.controller";
-import { TokenExpiredError, UnauthorizedError } from "./lib/errors";
-import { CookieController } from "./controllers/cookie.controller";
+import { authService } from "./modules/auth/auth.service";
+import { cacheService } from "./modules/cache/cache.service";
+import { cookieService } from "./modules/cookie/cookie.service";
+import { UnauthorizedError } from "./lib/errors";
 import type { UserSession, VerifiedUserSession } from "./types";
-import AuthController from "./controllers/auth.controller";
 
 export const createContext = async ({
   req,
@@ -13,15 +13,12 @@ export const createContext = async ({
   // Pass on the req and res objects to the Context
   // while checking an access token, if any
 
-  const { accessToken, refreshToken } = CookieController.getCookieValues(
-    req,
-    res
-  );
+  const { accessToken, refreshToken } = cookieService.getCookieValues(req, res);
 
   if (!!accessToken) {
     // Happy path!
     const { verified, expired, payload } =
-      CacheController.verifyAccessToken(accessToken);
+      cacheService.verifyAccessToken(accessToken);
 
     const session: UserSession = {
       id: payload?.sessionId || null,
@@ -46,9 +43,10 @@ export const createContext = async ({
       console.log("[TRPC] Refresh token found, attempting refresh...");
       try {
         const { accessToken: accessTokenAfterRefresh } =
-          await AuthController.refresh({ req, res });
-        const { verified, expired, payload } =
-          CacheController.verifyAccessToken(accessTokenAfterRefresh);
+          await authService.refresh({ req, res });
+        const { verified, expired, payload } = cacheService.verifyAccessToken(
+          accessTokenAfterRefresh
+        );
         const session: UserSession = {
           id: payload?.sessionId || null,
           user: payload?.user || null,
@@ -78,8 +76,6 @@ const t = initTRPC.context<Context>().create();
 
 const isAuthenticated = t.middleware(async ({ ctx, next }) => {
   try {
-    // Only use unauthorized here. The client will attempt a refresh if necessary
-
     const { session } = ctx;
 
     if (!session || !session.verified || !session.user) {
@@ -87,7 +83,7 @@ const isAuthenticated = t.middleware(async ({ ctx, next }) => {
     }
 
     if (session.expired) {
-      throw TokenExpiredError("Access token expired");
+      throw UnauthorizedError("Access token expired");
     }
 
     return next({

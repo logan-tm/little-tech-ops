@@ -1,21 +1,20 @@
 import { z } from "zod/v3";
-import { protectedProcedure, router } from "../trpc";
+import { protectedProcedure, router } from "../../trpc";
 
-import "dotenv/config";
-import { insertUserSchema } from "../db/schema";
-import UsersController from "../controllers/users.controller";
+import { insertUserSchema } from "../../db/schema";
+import { userService } from "./user.service";
 
-export const usersRouter = router({
-  list: protectedProcedure.query(async () => await UsersController.listUsers()),
+export const userRouter = router({
+  list: protectedProcedure.query(async () => await userService.listUsers()),
   getById: protectedProcedure
     .input(z.number())
-    .query(async ({ input }) => await UsersController.getUserById(input)),
+    .query(async ({ input }) => await userService.getUserById(input)),
   create: protectedProcedure
     .input(insertUserSchema.strict())
-    .mutation(async ({ input }) => await UsersController.createUser(input)),
+    .mutation(async ({ input }) => await userService.createUser(input)),
   remove: protectedProcedure
     .input(z.number())
-    .mutation(async (opts) => await UsersController.deleteUser(opts.input)),
+    .mutation(async (opts) => await userService.deleteUser(opts.input)),
   update: protectedProcedure
     .input(
       z.object({
@@ -29,6 +28,6 @@ export const usersRouter = router({
     )
     .mutation(async (opts) => {
       const { id, ...updateData } = opts.input;
-      return await UsersController.updateUser(id, updateData);
+      return await userService.updateUser(id, updateData);
     }),
 });

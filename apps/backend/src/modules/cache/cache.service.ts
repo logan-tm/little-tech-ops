@@ -1,38 +1,16 @@
 import jwt from "jsonwebtoken";
 
-import { redis } from "../cache/redis";
-import type { Context } from "../trpc";
+import { redis } from "../../lib/redis";
+import type { Context } from "../../trpc";
 import { randomUUID } from "crypto";
-import config from "../lib/config";
-import type { User } from "./users.controller";
+import config from "../../lib/config";
 
-interface JWTPayload {
-  user: User;
-  sessionId: string;
-}
-
-type JWTVerifyBadResult = {
-  verified: false;
-  expired: boolean;
-  payload: null;
-};
-
-type JWTVerifyGoodResult = {
-  verified: true;
-  expired: false;
-  payload: JWTPayload;
-};
-
-type JWTVerifyResult = JWTVerifyGoodResult | JWTVerifyBadResult;
-
-interface RefreshTokenData {
-  userId: string;
-  sessionId: string;
-  createdAt: number;
-  expiresAt: number;
-  userAgent?: string;
-  ipAddress?: string;
-}
+import type {
+  JWTPayload,
+  JWTVerifyResult,
+  RefreshTokenData,
+} from "./cache.types";
+import { User } from "../user/user.types";
 
 /**
  * Responsible for handling connections to redis, as well as
@@ -41,7 +19,7 @@ interface RefreshTokenData {
  * When an access token is issued, a brand new refresh token is also
  * issued.
  */
-export class CacheController {
+export const cacheService = {
   /**
    * Create an entry for the refresh key and a set for the user's id.
    * The set stores references to the user's multiple keys.
@@ -54,7 +32,7 @@ export class CacheController {
    *
    * user_tokens:user2          → Set { "xyz-456" }
    */
-  static async storeRefreshToken(data: RefreshTokenData): Promise<void> {
+  async storeRefreshToken(data: RefreshTokenData): Promise<void> {
     const key = `refresh_token:${data.sessionId}`;
     const userKey = `user_tokens:${data.userId}`;
     const ttl = Math.floor((data.expiresAt - Date.now()) / 1000);
@@ -71,11 +49,8 @@ export class CacheController {
 
     await redis.sadd(userKey, data.sessionId);
     await redis.expire(userKey, ttl); // Expires the set after the most recent refresh key expires
-  }
-
-  static async getRefreshToken(
-    sessionId: string
-  ): Promise<RefreshTokenData | null> {
+  },
+  async getRefreshToken(sessionId: string): Promise<RefreshTokenData | null> {
     const key = `refresh_token:${sessionId}`;
     const data = await redis.hgetall(key);
 
@@ -89,17 +64,15 @@ export class CacheController {
       userAgent: data.userAgent,
       ipAddress: data.ipAddress,
     };
-  }
-
-  static async deleteRefreshToken(sessionId: string): Promise<void> {
-    const data = await CacheController.getRefreshToken(sessionId);
+  },
+  async deleteRefreshToken(sessionId: string): Promise<void> {
+    const data = await this.getRefreshToken(sessionId);
     if (data) {
       await redis.srem(`user_tokens:${data.userId}`, sessionId);
     }
     await redis.del(`refresh_token:${sessionId}`);
-  }
-
-  static async revokeUserTokens(userId: string): Promise<void> {
+  },
+  async revokeUserTokens(userId: string): Promise<void> {
     const userKey = `user_tokens:${userId}`;
     const sessionIds = await redis.smembers(userKey);
 
@@ -109,9 +82,8 @@ export class CacheController {
     }
     pipeline.del(userKey);
     await pipeline.exec();
-  }
-
-  static async getUserTokens(userId: string): Promise<RefreshTokenData[]> {
+  },
+  async getUserTokens(userId: string): Promise<RefreshTokenData[]> {
     const sessionIds = await redis.smembers(`user_tokens:${userId}`);
     const tokens: RefreshTokenData[] = [];
 
@@ -121,9 +93,8 @@ export class CacheController {
     }
 
     return tokens;
-  }
-
-  static verifyAccessToken(token: string): JWTVerifyResult {
+  },
+  verifyAccessToken(token: string): JWTVerifyResult {
     try {
       return {
         verified: true,
@@ -141,9 +112,8 @@ export class CacheController {
         payload: null,
       };
     }
-  }
-
-  static verifyRefreshToken(token: string): JWTVerifyResult {
+  },
+  verifyRefreshToken(token: string): JWTVerifyResult {
     try {
       return {
         verified: true,
@@ -161,9 +131,8 @@ export class CacheController {
         payload: null,
       };
     }
-  }
-
-  static async generateTokens(user: User, req: Context["req"]) {
+  },
+  async generateTokens(user: User, req: Context["req"]) {
     const sessionId = randomUUID();
 
     const accessToken = this.generateAccessToken(user, sessionId);
@@ -174,7 +143,7 @@ export class CacheController {
 
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
 
-    await CacheController.storeRefreshToken({
+    await this.storeRefreshToken({
       userId: user.id.toString(),
       sessionId,
       createdAt: Date.now(),
@@ -184,17 +153,15 @@ export class CacheController {
     });
 
     return { accessToken, refreshToken };
-  }
-
-  static generateAccessToken(user: User, sessionId: string): string {
+  },
+  generateAccessToken(user: User, sessionId: string): string {
     return jwt.sign({ user, sessionId }, config.JWT_ACCESS_TOKEN_SECRET, {
       expiresIn: "15m",
     });
-  }
-
-  static generateRefreshToken(userId: string, sessionId: string): string {
+  },
+  generateRefreshToken(userId: string, sessionId: string): string {
     return jwt.sign({ userId, sessionId }, config.JWT_REFRESH_TOKEN_SECRET, {
       expiresIn: "7d",
     });
-  }
-}
+  },
+};

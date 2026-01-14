@@ -1,7 +1,7 @@
 import { z } from "zod/v3";
-import { protectedProcedure, publicProcedure, router } from "../trpc";
-import AuthController from "../controllers/auth.controller";
-import type { UserSession } from "../types";
+import { protectedProcedure, publicProcedure, router } from "../../trpc";
+import { authService } from "./auth.service";
+import type { UserSession } from "../../types";
 
 export const authRouter = router({
   login: publicProcedure
@@ -12,13 +12,13 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      await AuthController.login(input, ctx);
+      await authService.login(input, ctx);
     }),
   logout: protectedProcedure.mutation(async ({ ctx }) => {
-    await AuthController.logout(ctx);
+    await authService.logout(ctx);
   }),
   logoutAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
-    await AuthController.logoutAllSessions(ctx);
+    await authService.logoutAllSessions(ctx);
   }),
   register: publicProcedure
     .input(
@@ -30,11 +30,8 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      await AuthController.register(input, ctx); // also logs user in
+      await authService.register(input, ctx); // also logs user in
     }),
-  // refresh: publicProcedure.mutation(async ({ ctx }) => {
-  //   await AuthController.refresh(ctx);
-  // }),
   isAuthenticated: publicProcedure.query(
     async ({
       ctx,

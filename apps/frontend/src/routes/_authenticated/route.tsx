@@ -1,40 +1,34 @@
 import {
   Outlet,
   createFileRoute,
-  isRedirect,
+  // isRedirect,
   redirect,
 } from '@tanstack/react-router'
-import { z } from 'zod'
-import type { UserSession } from '../../../../backend/src/types'
+import { z } from 'zod/v3'
+import type { VerifiedUserSession } from '../../../../backend/src/types'
 
 export const Route = createFileRoute('/_authenticated')({
   validateSearch: z.object({
     redirect: z.string().optional().catch(''),
   }),
-  beforeLoad: async ({
-    context: { trpcUtils },
+  beforeLoad: ({
+    context: { isAuthenticated, session },
     location,
-  }): Promise<{ session: UserSession | null }> => {
-    try {
-      console.log("CHECKING AUTH IN 'AUTHENTICATED'...")
-      const { isAuthenticated, session } =
-        await trpcUtils.auth.isAuthenticated.ensureData()
-      console.log('SESSION', session)
-      if (!isAuthenticated) {
-        throw redirect({
-          to: '/login',
-          search: { redirect: location.href },
-        })
-      }
-      return { session }
-    } catch (error) {
-      if (isRedirect(error)) throw error
-      console.log(error)
-      return { session: null }
+  }): { session: VerifiedUserSession } => {
+    console.log("CHECKING AUTH IN 'AUTHENTICATED'...")
+    if (!isAuthenticated || !session || !session.user) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      })
     }
+    // At this point, no need for try/catch
+    // try {
+    // } catch (error) {
+    //   if (isRedirect(error)) throw error
+    //   console.log(error)
+    // }
+    return { session: session as VerifiedUserSession }
   },
-  // loader: ({ context }) => {
-  //   return { context }
-  // },
   component: () => <Outlet />,
 })

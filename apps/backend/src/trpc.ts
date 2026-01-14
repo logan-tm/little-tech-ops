@@ -1,11 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { CacheController } from "./controllers/cache.controller";
-import {
-  TokenExpiredError,
-  UnauthorizedError,
-  type AppErrorCode,
-} from "./lib/errors";
+import { TokenExpiredError, UnauthorizedError } from "./lib/errors";
 import { CookieController } from "./controllers/cookie.controller";
 import type { UserSession, VerifiedUserSession } from "./types";
 import AuthController from "./controllers/auth.controller";
@@ -40,30 +36,33 @@ export const createContext = async ({
       session,
     };
   } else {
+    console.log("[TRPC] No access token!");
     if (!refreshToken) {
-      // Never logged in
+      // Not logged in
+      console.log("[TRPC] No refresh token either!");
       return { req, res };
     } else {
       // Logged in, but auth token expired. Attempt refresh
+      console.log("[TRPC] Refresh token found, attempting refresh...");
       try {
-        await AuthController.refresh({ req, res });
         const { accessToken: accessTokenAfterRefresh } =
-          CookieController.getCookieValues(req, res);
+          await AuthController.refresh({ req, res });
         const { verified, expired, payload } =
-          CacheController.verifyAccessToken(accessTokenAfterRefresh!);
+          CacheController.verifyAccessToken(accessTokenAfterRefresh);
         const session: UserSession = {
           id: payload?.sessionId || null,
           user: payload?.user || null,
           verified,
           expired,
         };
+        console.log("[TRPC] Tokens refreshed!");
         return {
           req,
           res,
           session,
         };
       } catch (error) {
-        console.log(`Error during refresh! ${(error as Error).message}`);
+        console.log(`[TRPC] Error during refresh! ${(error as Error).message}`);
         return { req, res };
       }
     }
@@ -75,23 +74,7 @@ export type AuthenticatedContext = Context & {
   session: VerifiedUserSession;
 };
 
-const t = initTRPC.context<Context>().create({
-  errorFormatter({ shape, error }) {
-    let customCode: AppErrorCode = shape.data.code;
-
-    if (error.cause && (error.cause as any).code === "TOKEN_EXPIRED") {
-      customCode = "TOKEN_EXPIRED";
-    }
-
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        code: customCode,
-      },
-    };
-  },
-});
+const t = initTRPC.context<Context>().create();
 
 const isAuthenticated = t.middleware(async ({ ctx, next }) => {
   try {

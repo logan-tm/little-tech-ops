@@ -11,12 +11,9 @@ export const Route = createFileRoute('/_public')({
   validateSearch: z.object({
     redirect: z.string().optional().catch(''),
   }),
-  beforeLoad: async ({ context: { trpcUtils }, search }) => {
+  beforeLoad: ({ context: { isAuthenticated }, search }) => {
     try {
       console.log("CHECKING AUTH IN 'PUBLIC'...")
-      const { isAuthenticated, session } =
-        await trpcUtils.auth.isAuthenticated.ensureData()
-      console.log('SESSION', session)
       if (isAuthenticated) {
         throw redirect({ to: search.redirect || '/dashboard' })
       }

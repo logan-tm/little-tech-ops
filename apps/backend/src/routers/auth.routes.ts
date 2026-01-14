@@ -12,7 +12,6 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      console.log("LOGGING IN");
       await AuthController.login(input, ctx);
     }),
   logout: protectedProcedure.mutation(async ({ ctx }) => {
@@ -41,8 +40,10 @@ export const authRouter = router({
       ctx,
     }): Promise<{ isAuthenticated: boolean; session: UserSession | null }> => {
       const { session } = ctx;
+      const isAuthenticated = !!session && session.verified && !session.expired;
+      console.log(`CHECKING AUTH STATUS: ${isAuthenticated}`);
       return {
-        isAuthenticated: !!session && session.verified && !session.expired,
+        isAuthenticated,
         session: session || null,
       };
     }

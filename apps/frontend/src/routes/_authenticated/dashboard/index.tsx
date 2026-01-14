@@ -10,11 +10,6 @@ export const Route = createFileRoute('/_authenticated/dashboard/')({
 
 function RouteComponent() {
   const session = Route.useLoaderData()
-  console.log('ROUTE CONTEXT SESSION', session)
-
-  if (!session || !session.user) {
-    return <div>Who are you?</div>
-  }
 
   return (
     <div>

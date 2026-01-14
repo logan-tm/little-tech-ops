@@ -5,11 +5,15 @@ import { trpc } from '@/router'
 import { Card } from '@/components/ui/Card'
 
 export const Route = createFileRoute('/_authenticated/dashboard/users')({
+  loader: ({ context }) => {
+    return context.session
+  },
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <UserList />
+  const session = Route.useLoaderData()
+  return <UserList selfId={session.user.id.toString()} />
 }
 
 function UserCard({
@@ -43,7 +47,7 @@ function UserCard({
   )
 }
 
-function UserList() {
+function UserList({ selfId }: { selfId: string }) {
   const userQuery = useQuery(trpc.users.list.queryOptions())
   const { status, data: users, error, isFetching } = userQuery
   const userCreator = useMutation(
@@ -72,7 +76,13 @@ function UserList() {
           <UserCard
             key={user.id}
             user={user}
-            deleteUser={(id: number) => userDeletor.mutate(id)}
+            deleteUser={(id: number) => {
+              if (id.toString() === selfId) {
+                alert("You don't want to delete yourself!")
+              } else {
+                userDeletor.mutate(id)
+              }
+            }}
           />
         ))}
       </div>

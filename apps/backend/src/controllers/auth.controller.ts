@@ -29,8 +29,6 @@ export default class AuthController {
       // Set the cookies for the client
       CookieController.setAccessToken(ctx, accessToken);
       CookieController.setRefreshToken(ctx, refreshToken);
-
-      console.log("SET COOKIES");
     } catch (error) {
       console.error("Login error:", (error as Error).message);
       throw error;
@@ -41,7 +39,9 @@ export default class AuthController {
    * Cycles both the accessToken and refreshTokens. If a valid refresh token
    * is not available, a 401 Unauthorized error is thrown
    */
-  static async refresh(ctx: Context): Promise<void> {
+  static async refresh(
+    ctx: Context
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const { refreshToken } = CookieController.getCookieValues(
         ctx.req,
@@ -75,6 +75,7 @@ export default class AuthController {
       const tokens = await CacheController.generateTokens(user, ctx.req);
       CookieController.setAccessToken(ctx, tokens.accessToken);
       CookieController.setRefreshToken(ctx, tokens.refreshToken);
+      return tokens;
     } catch (error) {
       // if (error instanceof jwt.JsonWebTokenError) {
       //   throw UnauthorizedError("Invalid refresh token");

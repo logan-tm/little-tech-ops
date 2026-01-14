@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { drizzle } from "drizzle-orm/libsql";
 import { eq, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import { usersTable } from "../db/schema";

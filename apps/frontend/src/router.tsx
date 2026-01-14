@@ -30,6 +30,7 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
   queryClient,
 })
 
+// Useful for invalidations and refetching
 export const trpcUtils = createTRPCQueryUtils({
   queryClient,
   client: trpcClient,
@@ -43,7 +44,7 @@ export function createRouter() {
     context: {
       trpc,
       trpcUtils,
-      trpcClient,
+      // trpcClient,
       queryClient,
     },
     // defaultPendingComponent: () => (

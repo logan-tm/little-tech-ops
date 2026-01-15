@@ -6,7 +6,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![project_license][license-shield]][license-url]
+[![GNU GPLv3][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
 <!-- PROJECT LOGO -->
@@ -21,8 +21,8 @@
   <p align="center">
     A role-based warehouse simulator built to demonstrate modern authentication patterns and permission systems.
     <br />
-    <a href="https://github.com/logan-tm/little-tech-ops"><strong>Explore the docs »</strong></a>
-    <br />
+    <!-- <a href="https://github.com/logan-tm/little-tech-ops"><strong>Explore the docs »</strong></a> -->
+    <!-- <br /> -->
     <br />
     <a href="https://github.com/logan-tm/little-tech-ops">View Demo (Coming soon)</a>
     &middot;
@@ -139,14 +139,17 @@ TODO
 
 ## Roadmap
 
-<!-- - [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-  - [ ] Nested Feature
+- [x] Implement authentication flow with JWT tokens
+- [ ] Implement permissions structure with roles
+- [ ] Implement jobs, equipment inventory, and vehicles
+- [ ] Implement role-based actions:
+  - [ ] Users can checkout equipment, vehicles
+  - [ ] Users can "complete" jobs
+  - [ ] Supervisors can manage inventory and job assignments
+  - [ ] Managers can manage vehicles
+  - [ ] Admins can manage users
 
-See the [open issues](https://github.com/logan-tm/little-tech-ops/issues) for a full list of proposed features (and known issues). -->
-
-TODO
+See the [open issues](https://github.com/logan-tm/little-tech-ops/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -154,9 +157,7 @@ TODO
 
 ## License
 
-<!-- Distributed under the project_license. See `LICENSE.txt` for more information. -->
-
-TODO
+Distributed under the GNU GPLv3. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

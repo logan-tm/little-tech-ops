@@ -13,7 +13,7 @@ export const Route = createFileRoute('/_public')({
   }),
   beforeLoad: ({ context: { isAuthenticated }, search }) => {
     try {
-      console.log("CHECKING AUTH IN 'PUBLIC'...")
+      // console.log("CHECKING AUTH IN 'PUBLIC'...")
       if (isAuthenticated) {
         throw redirect({ to: search.redirect || '/dashboard' })
       }

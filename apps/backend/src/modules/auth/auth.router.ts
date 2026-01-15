@@ -38,7 +38,7 @@ export const authRouter = router({
     }): Promise<{ isAuthenticated: boolean; session: UserSession | null }> => {
       const { session } = ctx;
       const isAuthenticated = !!session && session.verified && !session.expired;
-      console.log(`CHECKING AUTH STATUS: ${isAuthenticated}`);
+      // console.log(`CHECKING AUTH STATUS: ${isAuthenticated}`);
       return {
         isAuthenticated,
         session: session || null,

@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_authenticated')({
     context: { isAuthenticated, session },
     location,
   }): { session: VerifiedUserSession } => {
-    console.log("CHECKING AUTH IN 'AUTHENTICATED'...")
+    // console.log("CHECKING AUTH IN 'AUTHENTICATED'...")
     if (!isAuthenticated || !session || !session.user) {
       throw redirect({
         to: '/login',

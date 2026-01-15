@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
-    "schema:push": "npx drizzle-kit push"
+    "db:push": "npx drizzle-kit push",
+    "dev:db:seed": "npx tsx src/db/seed.ts",
+    "dev:db:reset": "rm local.db && npm run db:push && npm run dev:db:seed"
   },
   "keywords": [],
   "author": "",
@@ -32,7 +34,7 @@
     "@types/cors": "^2.8.19",
     "@types/faker": "^6.6.8",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.0.8",
     "@types/sqlite3": "^3.1.11",
     "drizzle-kit": "^0.31.8",
     "nodemon": "^3.1.11",

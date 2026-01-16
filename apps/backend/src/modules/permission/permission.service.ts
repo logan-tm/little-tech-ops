@@ -1,21 +1,28 @@
 import type { User } from "../user/user.types";
 
-const PERMISSIONS: {
-  [key: string]: Array<User["role"]>;
-} = {
-  "GET:users": ["admin"],
-  "GET:inventoryItems": ["user", "admin"],
+const AVAILABLE_PERMISSIONS = [
+  "GET:users",
+  "CREATE:users",
+  "GET:inventoryItems",
+  "GET:vehicles",
+] as const;
+type PermissionsType = (typeof AVAILABLE_PERMISSIONS)[number];
+
+const PERMISSIONS_MAP: { [K in PermissionsType]: Array<User["role"]> } = {
+  "GET:users": ["manager", "admin"],
+  "CREATE:users": ["admin"],
+  "GET:inventoryItems": ["user", "manager"],
+  "GET:vehicles": ["user", "manager"],
   // ...
 };
-type Permission = keyof typeof PERMISSIONS;
 
 export const permissionService = {
   getPermissionsByRole(role: User["role"]) {
-    return Object.keys(PERMISSIONS).filter((key: string) => {
-      PERMISSIONS[key as Permission].includes(role);
+    return Object.keys(PERMISSIONS_MAP).filter((key) => {
+      PERMISSIONS_MAP[key as PermissionsType].includes(role);
     });
   },
-  getRolesWithPermission(permission: Permission) {
-    return PERMISSIONS[permission];
+  getRolesWithPermission(permission: PermissionsType) {
+    return PERMISSIONS_MAP[permission];
   },
 };

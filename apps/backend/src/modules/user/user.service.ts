@@ -3,10 +3,9 @@ import { eq } from "drizzle-orm";
 import { usersTable } from "../../db/schema";
 import config from "../../lib/config";
 import bcrypt from "bcryptjs";
+import type { UnsafeUser, User, InputUser, UpdateableUser } from "./user.types";
 
 const db = drizzle(config.DB_FILE_NAME);
-
-import type { UnsafeUser, User, InputUser, UpdateableUser } from "./user.types";
 
 const getSafeUser = (user: UnsafeUser): User => {
   // Remove any unsafe records from the user

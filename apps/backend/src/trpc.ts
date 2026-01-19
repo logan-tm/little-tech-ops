@@ -15,7 +15,10 @@ export const createContext = async ({
 
   const { accessToken, refreshToken } = cookieService.getCookieValues(req, res);
 
-  if (!!accessToken) {
+  const accessTokenExists = !!accessToken;
+  const refreshTokenExists = !!refreshToken;
+
+  if (accessTokenExists && refreshTokenExists) {
     // Happy path!
     const { verified, expired, payload } =
       cacheService.verifyAccessToken(accessToken);
@@ -32,39 +35,44 @@ export const createContext = async ({
       res,
       session,
     };
-  } else {
-    console.log("[TRPC] No access token!");
-    if (!refreshToken) {
-      // Not logged in
-      console.log("[TRPC] No refresh token either!");
+  }
+
+  if (!accessTokenExists && !refreshTokenExists) {
+    // Either never logged in, cleared cookies, or has been gone for a week
+    return { req, res };
+  }
+
+  if (accessTokenExists && !refreshTokenExists) {
+    // There's an issue. Clear access token and log back in
+    cookieService.clearCookies({ req, res });
+    return { req, res };
+  }
+
+  if (!accessTokenExists && refreshTokenExists) {
+    // Just needs a refresh
+    try {
+      const { accessToken: accessTokenAfterRefresh } =
+        await authService.refresh({ req, res });
+      const { verified, expired, payload } = cacheService.verifyAccessToken(
+        accessTokenAfterRefresh
+      );
+      const session: UserSession = {
+        id: payload?.sessionId || null,
+        user: payload?.user || null,
+        verified,
+        expired,
+      };
+      return {
+        req,
+        res,
+        session,
+      };
+    } catch (error) {
       return { req, res };
-    } else {
-      // Logged in, but auth token expired. Attempt refresh
-      console.log("[TRPC] Refresh token found, attempting refresh...");
-      try {
-        const { accessToken: accessTokenAfterRefresh } =
-          await authService.refresh({ req, res });
-        const { verified, expired, payload } = cacheService.verifyAccessToken(
-          accessTokenAfterRefresh
-        );
-        const session: UserSession = {
-          id: payload?.sessionId || null,
-          user: payload?.user || null,
-          verified,
-          expired,
-        };
-        console.log("[TRPC] Tokens refreshed!");
-        return {
-          req,
-          res,
-          session,
-        };
-      } catch (error) {
-        console.log(`[TRPC] Error during refresh! ${(error as Error).message}`);
-        return { req, res };
-      }
     }
   }
+
+  return { req, res };
 };
 
 export type Context = Awaited<ReturnType<typeof createContext>>;

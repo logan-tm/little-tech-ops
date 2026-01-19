@@ -2,24 +2,29 @@
   "name": "little-tech-ops",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend",
+    "packages/database",
+    "packages/trpc",
+    "packages/types"
+  ],
   "scripts": {
     "dev:client": "cd apps/frontend && npm run dev",
     "dev:server": "cd apps/backend && npm run dev",
     "dev": "concurrently --kill-others 'npm run dev:server' 'npm run dev:client'",
     "install:client": "cd apps/frontend && npm install --include=dev",
     "install:server": "cd apps/backend && npm install --include=dev",
-    "install:all": "npm install --include=dev && npm run install:client && npm run install:server"
+    "install:all": "npm install --include=dev && npm run install:client && npm run install:server",
+    "build": "npm run build --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/logan-tm/little-tech-ops.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "logan-tm",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {

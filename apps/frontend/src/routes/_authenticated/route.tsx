@@ -6,29 +6,27 @@ import {
 } from '@tanstack/react-router'
 import { z } from 'zod/v3'
 import type { VerifiedUserSession } from '../../../../backend/src/types'
+import type { Permission } from '../../../../backend/src/modules/permission/permission.types'
 
 export const Route = createFileRoute('/_authenticated')({
   validateSearch: z.object({
     redirect: z.string().optional().catch(''),
   }),
   beforeLoad: ({
-    context: { isAuthenticated, session },
+    context: { isAuthenticated, session, permissions },
     location,
-  }): { session: VerifiedUserSession } => {
+  }): { session: VerifiedUserSession; permissions: Array<Permission> } => {
     // console.log("CHECKING AUTH IN 'AUTHENTICATED'...")
-    if (!isAuthenticated || !session || !session.user) {
+    if (!isAuthenticated || !session || !session.user || !permissions) {
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
       })
     }
-    // At this point, no need for try/catch
-    // try {
-    // } catch (error) {
-    //   if (isRedirect(error)) throw error
-    //   console.log(error)
-    // }
-    return { session: session as VerifiedUserSession }
+    return {
+      session: session as VerifiedUserSession,
+      permissions,
+    }
   },
   component: () => <Outlet />,
 })

@@ -7,7 +7,7 @@
     },
  */
 
-import type { User } from "./controllers/users.controller";
+import type { User } from "./modules/user/user.types";
 
 export type VerifiedUserSession = {
   id: string;

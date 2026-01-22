@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "workspaces": [
-    "apps/frontend",
-    "apps/backend",
-    "packages/database",
-    "packages/trpc",
-    "packages/types"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev:client": "cd apps/frontend && npm run dev",
@@ -16,8 +13,10 @@
     "install:client": "cd apps/frontend && npm install --include=dev",
     "install:server": "cd apps/backend && npm install --include=dev",
     "install:all": "npm install --include=dev && npm run install:client && npm run install:server",
-    "build": "npm run build --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present"
+    "clean": "npm run clean --workspaces --if-present",
+    "build-database": "nx build @packages/database",
+    "build-trpc": "nx build @packages/database",
+    "build:packages": "nx run-many -t build -p \"packages/*\""
   },
   "repository": {
     "type": "git",
@@ -32,6 +31,8 @@
   },
   "homepage": "https://github.com/logan-tm/little-tech-ops#readme",
   "devDependencies": {
-    "concurrently": "^9.2.1"
-  }
+    "concurrently": "^9.2.1",
+    "nx": "22.3.3"
+  },
+  "dependencies": {}
 }

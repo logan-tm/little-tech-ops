@@ -11,7 +11,7 @@ export const authRouter = router({
       z.object({
         email: z.string().email(),
         password: z.string().min(6),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       await authService.login(input, ctx);
@@ -29,7 +29,7 @@ export const authRouter = router({
         lastName: z.string().min(1),
         email: z.string().email(),
         password: z.string().min(6),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       await authService.register(input, ctx); // also logs user in
@@ -55,6 +55,6 @@ export const authRouter = router({
         session: session || null,
         permissions,
       };
-    }
+    },
   ),
 });

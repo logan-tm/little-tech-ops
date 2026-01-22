@@ -1,8 +1,20 @@
 {
   "name": "@packages/trpc",
   "version": "0.0.1",
-  "main": "./index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    }
+  },
   "dependencies": {
     "@trpc/server": "^11.8.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

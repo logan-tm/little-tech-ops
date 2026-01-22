@@ -1,8 +1,9 @@
 import { z } from "zod/v3";
+import { userService } from "@packages/database";
 import { protectedProcedure, router } from "../../trpc";
 
 import { insertUserSchema } from "../../db/schema";
-import { userService } from "./user.service";
+// import { userService } from "./user.service";
 
 export const userRouter = router({
   list: protectedProcedure.query(async () => await userService.listUsers()),
@@ -24,7 +25,7 @@ export const userRouter = router({
         email: z.string().email().optional(),
         passwordHash: z.string().optional(),
         role: z.enum(["admin", "manager", "user"]).optional(),
-      })
+      }),
     )
     .mutation(async (opts) => {
       const { id, ...updateData } = opts.input;

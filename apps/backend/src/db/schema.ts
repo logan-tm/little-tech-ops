@@ -10,10 +10,10 @@ export const usersTable = sqliteTable("users_table", {
   firstName: text().notNull(),
   lastName: text().notNull(),
   email: text().notNull().unique(),
-  passwordHash: text().notNull(),
-  role: text({ enum: ["admin", "manager", "user"] })
+  password: text().notNull(),
+  role: text({ enum: ["admin", "manager", "technician"] })
     .notNull()
-    .default("user"),
+    .default("technician"),
   createdAt: text().notNull().default(new Date().toISOString()),
   updatedAt: text()
     .notNull()

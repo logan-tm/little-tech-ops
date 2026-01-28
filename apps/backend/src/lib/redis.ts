@@ -1,7 +1,7 @@
 import { Redis } from "ioredis";
-import config from "../lib/config";
+import { env } from "../env";
 
-const redis = new Redis(config.REDIS_URL);
+const redis = new Redis(env.REDIS_URL);
 
 redis.on("error", (err) => {
   console.error("Redis error:", err);

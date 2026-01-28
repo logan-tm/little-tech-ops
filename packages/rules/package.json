@@ -1,10 +1,11 @@
 {
-  "name": "@packages/trpc",
+  "name": "@packages/rules",
   "version": "0.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "dev": "npx tsx src/index.ts"
   },
   "exports": {
     ".": "./dist/index.js",
@@ -13,10 +14,7 @@
       "default": "./dist/types.js"
     }
   },
-  "dependencies": {
-    "@trpc/client": "^11.8.1",
-    "@trpc/server": "^11.8.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "^5.9.3"
   }

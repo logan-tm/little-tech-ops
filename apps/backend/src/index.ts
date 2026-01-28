@@ -3,8 +3,9 @@ import "dotenv/config";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import express from "express";
 import cors from "cors";
-import { appRouter } from "./router";
+import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc";
+import { env } from "./env";
 
 process.on("uncaughtException", function (err) {
   console.log(err);
@@ -17,6 +18,6 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
-  })
+  }),
 );
-app.listen(4000);
+app.listen(env.PORT);

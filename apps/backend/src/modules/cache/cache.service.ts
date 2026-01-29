@@ -3,8 +3,7 @@ import jwt from "jsonwebtoken";
 import { redis } from "../../lib/redis";
 import type { Context } from "../../trpc";
 import { randomUUID } from "crypto";
-import config from "../../lib/config";
-
+import { env } from "../../env";
 import type {
   JWTPayload,
   JWTVerifyResult,
@@ -99,10 +98,7 @@ export const cacheService = {
       return {
         verified: true,
         expired: false,
-        payload: jwt.verify(
-          token,
-          config.JWT_ACCESS_TOKEN_SECRET
-        ) as JWTPayload,
+        payload: jwt.verify(token, env.JWT_ACCESS_TOKEN_SECRET) as JWTPayload,
       };
     } catch (error) {
       const err = error as { name: string; message: string };
@@ -118,10 +114,7 @@ export const cacheService = {
       return {
         verified: true,
         expired: false,
-        payload: jwt.verify(
-          token,
-          config.JWT_REFRESH_TOKEN_SECRET
-        ) as JWTPayload,
+        payload: jwt.verify(token, env.JWT_REFRESH_TOKEN_SECRET) as JWTPayload,
       };
     } catch (error) {
       const err = error as { name: string; message: string };
@@ -138,7 +131,7 @@ export const cacheService = {
     const accessToken = this.generateAccessToken(user, sessionId);
     const refreshToken = this.generateRefreshToken(
       user.id.toString(),
-      sessionId
+      sessionId,
     );
 
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -155,12 +148,12 @@ export const cacheService = {
     return { accessToken, refreshToken };
   },
   generateAccessToken(user: User, sessionId: string): string {
-    return jwt.sign({ user, sessionId }, config.JWT_ACCESS_TOKEN_SECRET, {
+    return jwt.sign({ user, sessionId }, env.JWT_ACCESS_TOKEN_SECRET, {
       expiresIn: "15m",
     });
   },
   generateRefreshToken(userId: string, sessionId: string): string {
-    return jwt.sign({ userId, sessionId }, config.JWT_REFRESH_TOKEN_SECRET, {
+    return jwt.sign({ userId, sessionId }, env.JWT_REFRESH_TOKEN_SECRET, {
       expiresIn: "7d",
     });
   },

@@ -1,22 +1,22 @@
 import { z } from "zod/v3";
-import { userService } from "@packages/database";
-import { protectedProcedure, router } from "../../trpc";
-
-import { insertUserSchema } from "../../db/schema";
-// import { userService } from "./user.service";
+import { userService, insertUserSchema } from "@packages/database";
+import { router } from "../../trpc/init";
+import { procedurePermittedBy } from "../../trpc/procedures";
 
 export const userRouter = router({
-  list: protectedProcedure.query(async () => await userService.listUsers()),
-  getById: protectedProcedure
+  list: procedurePermittedBy("LIST:users").query(
+    async () => await userService.listUsers(),
+  ),
+  getById: procedurePermittedBy("GET:user")
     .input(z.number())
     .query(async ({ input }) => await userService.getUserById(input)),
-  create: protectedProcedure
+  create: procedurePermittedBy("CREATE:user")
     .input(insertUserSchema.strict())
     .mutation(async ({ input }) => await userService.createUser(input)),
-  remove: protectedProcedure
+  remove: procedurePermittedBy("DELETE:user")
     .input(z.number())
     .mutation(async (opts) => await userService.deleteUser(opts.input)),
-  update: protectedProcedure
+  update: procedurePermittedBy("UPDATE:user")
     .input(
       z.object({
         id: z.number(),

@@ -16,7 +16,7 @@
   "dependencies": {
     "@libsql/client": "^0.15.15",
     "@packages/database": "*",
-    "@packages/trpc": "*",
+    "@packages/rules": "*",
     "@packages/types": "*",
     "@trpc/server": "^11.8.1",
     "bcryptjs": "^3.0.3",

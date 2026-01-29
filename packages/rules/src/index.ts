@@ -13,28 +13,22 @@ type User = {
   has_manual_override: boolean;
 };
 
-const isAdmin = defineRule<User>("is_admin", (user: User) => {
+const isAdmin = defineRule<User>((user: User) => {
   return user.is_admin;
 });
 
-const isActive = defineRule<User>("is_active", (user: User) => {
+const isActive = defineRule<User>((user: User) => {
   return user.is_active;
 });
 
-const accountAgeGreaterThan = defineRule<User>(
-  "account_age_greater_than",
-  (user: User, days: number) => {
-    return user.account_age > days;
-  },
-);
+const accountAgeGreaterThan = defineRule<User>((user: User, days: number) => {
+  return user.account_age > days;
+});
 
-const isInNorthAmerica = defineRule<User>(
-  "is_in_north_america",
-  (user: User) => {
-    const naCountries = ["US", "CA", "MX"];
-    return naCountries.includes(user.country);
-  },
-);
+const isInNorthAmerica = defineRule<User>((user: User) => {
+  const naCountries = ["US", "CA", "MX"];
+  return naCountries.includes(user.country);
+});
 
 const userCanAccess = isAdmin()
   .or(isActive().and(accountAgeGreaterThan(30)))

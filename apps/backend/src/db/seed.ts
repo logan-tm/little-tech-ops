@@ -11,7 +11,7 @@ async function seed() {
     firstName: "Super",
     lastName: "Admin",
     email: "super@admin.com",
-    passwordHash,
+    password: passwordHash,
     role: "admin",
   });
 

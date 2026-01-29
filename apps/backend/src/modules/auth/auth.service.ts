@@ -10,12 +10,12 @@ import { userService } from "../user/user.service";
 export const authService = {
   async login(
     input: { email: string; password: string },
-    ctx: Context
+    ctx: Context,
   ): Promise<void> {
     try {
       const { user, passwordCorrect } = await userService.checkLogin(
         input.email,
-        input.password
+        input.password,
       );
 
       if (!user || !passwordCorrect) {
@@ -25,7 +25,7 @@ export const authService = {
       // Updates cache with refresh token
       const { accessToken, refreshToken } = await cacheService.generateTokens(
         user,
-        ctx.req
+        ctx.req,
       );
 
       // Set the cookies for the client
@@ -42,7 +42,7 @@ export const authService = {
    * is not available, a 401 Unauthorized error is thrown
    */
   async refresh(
-    ctx: Context
+    ctx: Context,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const { refreshToken } = cookieService.getCookieValues(ctx.req, ctx.res);
@@ -102,7 +102,7 @@ export const authService = {
       cookieService.clearCookies(ctx);
     } catch (error) {
       throw new Error(
-        `Logout all sessions failed: ${(error as Error).message}`
+        `Logout all sessions failed: ${(error as Error).message}`,
       );
     }
   },
@@ -114,7 +114,7 @@ export const authService = {
       email: string;
       password: string;
     },
-    ctx: Context
+    ctx: Context,
   ): Promise<void> {
     const { firstName, lastName, email, password } = input;
 
@@ -131,13 +131,13 @@ export const authService = {
       firstName,
       lastName,
       email,
-      passwordHash,
-      role: "user",
+      password: passwordHash,
+      role: "technician",
     });
 
     const { accessToken, refreshToken } = await cacheService.generateTokens(
       user,
-      ctx.req
+      ctx.req,
     );
 
     cookieService.setAccessToken(ctx, accessToken);

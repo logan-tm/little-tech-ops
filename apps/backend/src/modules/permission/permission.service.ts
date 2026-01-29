@@ -4,8 +4,8 @@ import type { Permission } from "./permission.types";
 const PERMISSIONS_MAP: { [K in Permission]: Array<User["role"]> } = {
   "GET:users": ["manager", "admin"],
   "CREATE:users": ["admin"],
-  "GET:inventoryItems": ["user", "manager"],
-  "GET:vehicles": ["user", "manager"],
+  "GET:inventoryItems": ["technician", "manager"],
+  "GET:vehicles": ["technician", "manager"],
   // ...
 };
 

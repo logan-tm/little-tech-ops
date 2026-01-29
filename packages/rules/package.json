@@ -9,12 +9,13 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./types": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/types.js"
-    }
+    "./client": "./dist/client.js",
+    "./server": "./dist/server.js",
+    "./permissions": "./dist/permissions.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@packages/database": "*"
+  },
   "devDependencies": {
     "typescript": "^5.9.3"
   }

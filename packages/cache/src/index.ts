@@ -1,5 +1,5 @@
-import { Redis } from "ioredis";
-import { CacheService } from "./service";
+import { Redis } from 'ioredis';
+import { CacheService } from './service';
 
 export function createCacheService(
   url: string,
@@ -7,8 +7,8 @@ export function createCacheService(
 ): CacheService {
   const redis = new Redis(url);
 
-  redis.on("error", (err) => {
-    console.error("Redis error:", err);
+  redis.on('error', (err) => {
+    console.error('Redis error:', err);
   });
 
   const service = new CacheService(redis, secrets);

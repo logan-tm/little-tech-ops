@@ -1,21 +1,16 @@
-import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import type { DBType } from '../../root';
+import type { InsertUserInput, SelectUnsafeUserOutput, UpdateUserInput, User } from './types';
 
-import {
-  type InsertUserInput,
-  type SelectUnsafeUserOutput,
-  type UpdateUserInput,
-  type User,
-} from "./types";
-import { usersTable } from "./schema";
-import type { DBType } from "../../root";
+import bcrypt from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+import { usersTable } from './schema';
 
-const getSafeUser = (user: SelectUnsafeUserOutput): User => {
+function getSafeUser(user: SelectUnsafeUserOutput): User {
   // Remove any unsafe records from the user
   // i.e. any records not safe to store in an access token
   const { password, createdAt, updatedAt, ...safeUser } = user;
   return safeUser;
-};
+}
 
 export class UserService {
   constructor(private db: DBType) {}
@@ -28,6 +23,7 @@ export class UserService {
 
     return user ? getSafeUser(user) : null;
   }
+
   async getUserByEmail(email: string): Promise<User | null> {
     const [user] = await this.db
       .select()
@@ -37,6 +33,7 @@ export class UserService {
 
     return user ? getSafeUser(user) : null;
   }
+
   async createUser(input: InsertUserInput) {
     const hashedPassword = bcrypt.hashSync(input.password, 10);
     const [newUser] = await this.db
@@ -50,7 +47,7 @@ export class UserService {
   }
 
   async listUsers() {
-    return (await this.db.select().from(usersTable)).map((user) =>
+    return (await this.db.select().from(usersTable)).map(user =>
       getSafeUser(user),
     );
   }
@@ -71,13 +68,13 @@ export class UserService {
     password: string,
   ): Promise<
     | {
-        passwordCorrect: false;
-        user: null;
-      }
+      passwordCorrect: false;
+      user: null;
+    }
     | {
-        passwordCorrect: true;
-        user: User;
-      }
+      passwordCorrect: true;
+      user: User;
+    }
   > {
     const [user] = await this.db
       .select()

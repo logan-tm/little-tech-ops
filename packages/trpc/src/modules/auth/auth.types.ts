@@ -1,15 +1,15 @@
-import type { User } from "@packages/database/users";
+import type { User } from '@packages/database/users';
 
-export type VerifiedUserSession = {
+export interface VerifiedUserSession {
   id: string;
   user: User;
   verified: true;
   expired: false;
-};
+}
 
-export type UserSession = {
+export interface UserSession {
   id: string | null;
   user: User | null;
   verified: boolean;
   expired: boolean;
-};
+}

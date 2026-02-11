@@ -1,4 +1,4 @@
-const CodeBlock = ({ code, language }: { code: string; language: string }) => {
+function CodeBlock({ code, language }: { code: string; language: string }) {
   return (
     <div className="my-4 rounded-lg bg-gray-800 shadow-lg">
       {/* Optional: Language label */}
@@ -11,7 +11,7 @@ const CodeBlock = ({ code, language }: { code: string; language: string }) => {
         <code className="text-sm font-mono text-gray-100">{code}</code>
       </pre>
     </div>
-  )
+  );
 }
 
-export default CodeBlock
+export default CodeBlock;

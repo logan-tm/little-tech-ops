@@ -1,15 +1,16 @@
-import jwt from "jsonwebtoken";
-import type { Redis } from "ioredis";
+import type { User } from '@packages/database/users';
+import type { Redis } from 'ioredis';
 
-import { randomUUID } from "crypto";
-import type { JWTPayload, JWTVerifyResult, RefreshTokenData } from "./types";
-import { User } from "@packages/database/users";
+import type { JWTPayload, JWTVerifyResult, RefreshTokenData } from './types';
+import { randomUUID } from 'node:crypto';
+import jwt from 'jsonwebtoken';
 
 export class CacheService {
   constructor(
     private redis: Redis,
     private secrets: { accessTokenSecret: string; refreshTokenSecret: string },
   ) {}
+
   /**
    * Create an entry for the refresh key and a set for the user's id.
    * The set stores references to the user's multiple keys.
@@ -31,8 +32,8 @@ export class CacheService {
       userId: data.userId,
       createdAt: data.createdAt.toString(),
       expiresAt: data.expiresAt.toString(),
-      userAgent: data.userAgent || "",
-      ipAddress: data.ipAddress || "",
+      userAgent: data.userAgent || '',
+      ipAddress: data.ipAddress || '',
     });
 
     await this.redis.expire(key, ttl);
@@ -40,21 +41,24 @@ export class CacheService {
     await this.redis.sadd(userKey, data.sessionId);
     await this.redis.expire(userKey, ttl); // Expires the set after the most recent refresh key expires
   }
+
   async getRefreshToken(sessionId: string): Promise<RefreshTokenData | null> {
     const key = `refresh_token:${sessionId}`;
     const data = await this.redis.hgetall(key);
 
-    if (!data || !data.userId) return null;
+    if (!data || !data.userId)
+      return null;
 
     return {
       userId: data.userId,
       sessionId,
-      createdAt: parseInt(data.createdAt),
-      expiresAt: parseInt(data.expiresAt),
+      createdAt: Number.parseInt(data.createdAt),
+      expiresAt: Number.parseInt(data.expiresAt),
       userAgent: data.userAgent,
       ipAddress: data.ipAddress,
     };
   }
+
   async deleteRefreshToken(sessionId: string): Promise<void> {
     const data = await this.getRefreshToken(sessionId);
     if (data) {
@@ -62,6 +66,7 @@ export class CacheService {
     }
     await this.redis.del(`refresh_token:${sessionId}`);
   }
+
   async revokeUserTokens(userId: string): Promise<void> {
     const userKey = `user_tokens:${userId}`;
     const sessionIds = await this.redis.smembers(userKey);
@@ -72,17 +77,20 @@ export class CacheService {
     pipeline.del(userKey);
     await pipeline.exec();
   }
+
   async getUserTokens(userId: string): Promise<RefreshTokenData[]> {
     const sessionIds = await this.redis.smembers(`user_tokens:${userId}`);
     const tokens: RefreshTokenData[] = [];
 
     for (const sessionId of sessionIds) {
       const token = await this.getRefreshToken(sessionId);
-      if (token) tokens.push(token);
+      if (token)
+        tokens.push(token);
     }
 
     return tokens;
   }
+
   verifyAccessToken(token: string): JWTVerifyResult {
     try {
       return {
@@ -93,15 +101,17 @@ export class CacheService {
           this.secrets.accessTokenSecret,
         ) as JWTPayload,
       };
-    } catch (error) {
+    }
+    catch (error) {
       const err = error as { name: string; message: string };
       return {
         verified: false,
-        expired: err.name === "TokenExpiredError",
+        expired: err.name === 'TokenExpiredError',
         payload: null,
       };
     }
   }
+
   verifyRefreshToken(token: string): JWTVerifyResult {
     try {
       return {
@@ -112,15 +122,17 @@ export class CacheService {
           this.secrets.refreshTokenSecret,
         ) as JWTPayload,
       };
-    } catch (error) {
+    }
+    catch (error) {
       const err = error as { name: string; message: string };
       return {
         verified: false,
-        expired: err.name === "TokenExpiredError",
+        expired: err.name === 'TokenExpiredError',
         payload: null,
       };
     }
   }
+
   async generateTokens(
     user: User,
     metadata: Record<string, any>,
@@ -145,14 +157,16 @@ export class CacheService {
 
     return { accessToken, refreshToken };
   }
+
   generateAccessToken(user: User, sessionId: string): string {
     return jwt.sign({ user, sessionId }, this.secrets.accessTokenSecret, {
-      expiresIn: "15m",
+      expiresIn: '15m',
     });
   }
+
   generateRefreshToken(userId: string, sessionId: string): string {
     return jwt.sign({ userId, sessionId }, this.secrets.refreshTokenSecret, {
-      expiresIn: "7d",
+      expiresIn: '7d',
     });
   }
 }

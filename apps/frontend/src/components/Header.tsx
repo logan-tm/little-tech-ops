@@ -1,10 +1,10 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
-import { useState } from 'react'
-import { Home, Menu, X } from 'lucide-react'
+import { Home, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Header() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -76,5 +76,5 @@ export default function Header() {
         </nav>
       </aside>
     </>
-  )
+  );
 }

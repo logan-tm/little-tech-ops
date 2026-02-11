@@ -1,12 +1,12 @@
+import type { Permission } from '../../../../backend/src/modules/permission/permission.types';
+import type { VerifiedUserSession } from '../../../../backend/src/types';
 import {
-  Outlet,
   createFileRoute,
+  Outlet,
   // isRedirect,
   redirect,
-} from '@tanstack/react-router'
-import { z } from 'zod/v3'
-import type { VerifiedUserSession } from '../../../../backend/src/types'
-import type { Permission } from '../../../../backend/src/modules/permission/permission.types'
+} from '@tanstack/react-router';
+import { z } from 'zod/v3';
 
 export const Route = createFileRoute('/_authenticated')({
   validateSearch: z.object({
@@ -21,12 +21,12 @@ export const Route = createFileRoute('/_authenticated')({
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
-      })
+      });
     }
     return {
       session: session as VerifiedUserSession,
       permissions,
-    }
+    };
   },
   component: () => <Outlet />,
-})
+});

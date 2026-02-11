@@ -1,19 +1,19 @@
-import * as trpcExpress from "@trpc/server/adapters/express";
+import type { CacheService } from '@packages/cache';
 
-import type { CacheService } from "@packages/cache";
-import type { UserService } from "@packages/database";
+import type { UserService } from '@packages/database';
+import type * as trpcExpress from '@trpc/server/adapters/express';
 
-import type { CookieService } from "./modules/cookie/cookie.service";
-import type { AuthService } from "./modules/auth/auth.service";
+import type { AuthService } from './modules/auth/auth.service';
+import type { VerifiedUserSession } from './modules/auth/auth.types';
 
-import { VerifiedUserSession } from "./modules/auth/auth.types";
+import type { CookieService } from './modules/cookie/cookie.service';
 
-export const createContextWrapper = (services: {
+export function createContextWrapper(services: {
   authService: AuthService;
   cacheService: CacheService;
   userService: UserService;
   cookieService: CookieService;
-}) => {
+}) {
   return async (opts: trpcExpress.CreateExpressContextOptions) => {
     const { authService, cacheService, userService, cookieService } = services;
     const context = await createContext({
@@ -25,7 +25,7 @@ export const createContextWrapper = (services: {
       services: { authService, cacheService, cookieService, userService },
     };
   };
-};
+}
 
 type ContextOptions = trpcExpress.CreateExpressContextOptions & {
   services: {
@@ -36,9 +36,9 @@ type ContextOptions = trpcExpress.CreateExpressContextOptions & {
   };
 };
 
-const createContext = async ({ req, res, info, services }: ContextOptions) => {
+async function createContext({ req, res, info, services }: ContextOptions) {
   return { req, res, info, services };
-};
+}
 
 export type Context = Awaited<
   ReturnType<ReturnType<typeof createContextWrapper>>

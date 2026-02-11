@@ -1,8 +1,9 @@
-import { z } from "zod/v3";
-import { authenticatedProcedure, publicProcedure } from "../../procedures";
-import { router } from "../../index";
-import { type Permission, getPermissionsByRole } from "@packages/rules";
-import type { UserSession } from "./auth.types";
+import type { Permission } from '@packages/rules';
+import type { UserSession } from './auth.types';
+import { getPermissionsByRole } from '@packages/rules';
+import { z } from 'zod/v3';
+import { router } from '../../index';
+import { authenticatedProcedure, publicProcedure } from '../../procedures';
 
 export const authRouter = router({
   login: publicProcedure
@@ -42,10 +43,10 @@ export const authRouter = router({
       permissions: Array<Permission> | null;
     }> => {
       const { session } = ctx;
-      const isAuthenticated =
-        session !== undefined && session.verified && !session.expired;
-      const permissions =
-        isAuthenticated && !!session.user
+      const isAuthenticated
+        = session !== undefined && session.verified && !session.expired;
+      const permissions
+        = isAuthenticated && !!session.user
           ? getPermissionsByRole(session.user.role)
           : null;
       return {

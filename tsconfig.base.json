@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "outDir": "./dist",
-    "module": "nodenext",
-    "moduleResolution": "nodenext"
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "exclude": ["node_modules"]
 }

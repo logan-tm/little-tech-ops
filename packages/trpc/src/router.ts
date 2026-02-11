@@ -1,7 +1,7 @@
-import { router } from "./";
+import { router } from './';
 
-import { userRouter } from "./modules/user/user.router";
-import { authRouter } from "./modules/auth/auth.router";
+import { authRouter } from './modules/auth/auth.router';
+import { userRouter } from './modules/user/user.router';
 
 export const appRouter = router({
   users: userRouter,

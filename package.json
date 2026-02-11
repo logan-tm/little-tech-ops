@@ -1,11 +1,23 @@
 {
   "name": "little-tech-ops",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
+  "author": "logan-tm",
+  "license": "ISC",
+  "homepage": "https://github.com/logan-tm/little-tech-ops#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logan-tm/little-tech-ops.git"
+  },
+  "bugs": {
+    "url": "https://github.com/logan-tm/little-tech-ops/issues"
+  },
+  "keywords": [],
   "scripts": {
     "dev:client": "cd apps/frontend && npm run dev",
     "dev:server": "cd apps/backend && npm run dev",
@@ -15,23 +27,19 @@
     "install:all": "npm install --include=dev && npm run install:client && npm run install:server",
     "clean": "npm run clean --workspaces --if-present",
     "build:packages": "nx run-many -t build -p \"packages/*\"",
-    "build:server": "nx run-many -t build -p \"packages/*\" -p \"apps/backend\""
+    "build:server": "nx run-many -t build -p \"packages/*\" -p \"apps/backend\"",
+    "lint:packages": "eslint packages/**/src/**/*.ts",
+    "lint:packages:fix": "eslint --fix packages/**/src/**/*.ts",
+    "lint:server": "eslint apps/backend/**/src/**/*.ts",
+    "lint:server:fix": "eslint --fix apps/backend/**/src/**/*.ts",
+    "lint:all": "npm run lint:packages && npm run lint:server"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/logan-tm/little-tech-ops.git"
-  },
-  "keywords": [],
-  "author": "logan-tm",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/logan-tm/little-tech-ops/issues"
-  },
-  "homepage": "https://github.com/logan-tm/little-tech-ops#readme",
   "devDependencies": {
+    "@antfu/eslint-config": "^7.4.3",
+    "@eslint-react/eslint-plugin": "^2.12.4",
     "concurrently": "^9.2.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.0",
     "nx": "22.3.3"
-  },
-  "dependencies": {}
+  }
 }

@@ -1,7 +1,11 @@
 {
   "name": "backend",
+  "type": "commonjs",
   "version": "1.0.0",
   "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
@@ -10,10 +14,6 @@
     "dev:db:reset": "rm local.db && npm run db:push && npm run dev:db:seed",
     "build": "tsc -p tsconfig.json"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@libsql/client": "^0.15.15",
     "@packages/cache": "*",

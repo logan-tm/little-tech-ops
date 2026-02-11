@@ -1,86 +1,103 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { trpc } from '@/router'
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { createFileRoute } from '@tanstack/react-router';
+import { Card } from '@/components/ui/Card';
 
-import { Card } from '@/components/ui/Card'
+import { trpc } from '@/router';
 
 export const Route = createFileRoute('/_authenticated/dashboard/users')({
   loader: ({ context }) => {
-    return context.session
+    return context.session;
   },
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  const session = Route.useLoaderData()
-  return <UserList selfId={session.user.id.toString()} />
+  const session = Route.useLoaderData();
+  return <UserList selfId={session.user.id.toString()} />;
 }
 
 function UserCard({
   user,
   deleteUser,
 }: {
-  user: any
-  deleteUser: (id: number) => void
+  user: any;
+  deleteUser: (id: number) => void;
 }) {
   return (
     <Card className="mb-2 max-w-md">
       <Card.Header className="italic">{user.id}</Card.Header>
       <Card.Title>
-        {user.firstName} {user.lastName}
+        {user.firstName}
+        {' '}
+        {user.lastName}
       </Card.Title>
       <Card.Description>{user.email}</Card.Description>
       <Card.Content className="italic">
-        <p>Role: {user.role}</p>
+        <p>
+          Role:
+          {user.role}
+        </p>
       </Card.Content>
       <Card.Footer>
         <button
           onClick={(e) => {
-            e.stopPropagation()
-            deleteUser(user.id)
+            e.stopPropagation();
+            deleteUser(user.id);
           }}
         >
           Delete User
         </button>
       </Card.Footer>
     </Card>
-  )
+  );
 }
 
 function UserList({ selfId }: { selfId: string }) {
-  const userQuery = useQuery(trpc.users.list.queryOptions())
-  const { status, data: users, error, isFetching } = userQuery
+  const userQuery = useQuery(trpc.users.list.queryOptions());
+  const { status, data: users, error, isFetching } = userQuery;
   const userCreator = useMutation(
     trpc.users.create.mutationOptions({
       onSuccess: () => {
-        userQuery.refetch()
+        userQuery.refetch();
       },
     }),
-  )
+  );
   const userDeletor = useMutation(
     trpc.users.remove.mutationOptions({
       onSuccess: () => {
-        userQuery.refetch()
+        userQuery.refetch();
       },
     }),
-  )
+  );
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">User Management</h2>
-      <p>Status: {status}</p>
-      <p>Fetching: {isFetching ? 'Yes' : 'No'}</p>
-      {error && <p className="text-red-500">Error: {error.message}</p>}
+      <p>
+        Status:
+        {status}
+      </p>
+      <p>
+        Fetching:
+        {isFetching ? 'Yes' : 'No'}
+      </p>
+      {error && (
+        <p className="text-red-500">
+          Error:
+          {error.message}
+        </p>
+      )}
       <div className="flex gap-3">
-        {users?.map((user) => (
+        {users?.map(user => (
           <UserCard
             key={user.id}
             user={user}
             deleteUser={(id: number) => {
               if (id.toString() === selfId) {
-                alert("You don't want to delete yourself!")
-              } else {
-                userDeletor.mutate(id)
+                alert('You don\'t want to delete yourself!');
+              }
+              else {
+                userDeletor.mutate(id);
               }
             }}
           />
@@ -95,11 +112,11 @@ function UserList({ selfId }: { selfId: string }) {
             email: `newuser${Date.now()}@example.com`,
             passwordHash: 'hashedpassword',
             role: 'user',
-          })
+          });
         }}
       >
         Create User
       </button>
     </div>
-  )
+  );
 }

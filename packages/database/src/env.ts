@@ -1,4 +1,4 @@
-import { z } from "zod/v3";
+import { z } from 'zod/v3';
 
 const envSchema = z.object({
   DB_FILE_NAME: z.string(),

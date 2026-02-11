@@ -1,29 +1,29 @@
-import { User } from "@packages/database/users";
+import type { User } from '@packages/database/users';
 
-export type JWTPayload = {
+export interface JWTPayload {
   user: User;
   sessionId: string;
-};
+}
 
-type JWTVerifyBadResult = {
+interface JWTVerifyBadResult {
   verified: false;
   expired: boolean;
   payload: null;
-};
+}
 
-type JWTVerifyGoodResult = {
+interface JWTVerifyGoodResult {
   verified: true;
   expired: false;
   payload: JWTPayload;
-};
+}
 
 export type JWTVerifyResult = JWTVerifyGoodResult | JWTVerifyBadResult;
 
-export type RefreshTokenData = {
+export interface RefreshTokenData {
   userId: string;
   sessionId: string;
   createdAt: number;
   expiresAt: number;
   userAgent?: string;
   ipAddress?: string;
-};
+}

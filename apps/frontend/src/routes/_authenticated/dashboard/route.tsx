@@ -4,39 +4,39 @@
  * It also handles the logout functionality.
  */
 
+import { useMutation } from '@tanstack/react-query';
+
 import {
+  createFileRoute,
   Link,
   Outlet,
-  createFileRoute,
   useRouter,
-} from '@tanstack/react-router'
-
-import { useMutation } from '@tanstack/react-query'
-import { trpc, trpcUtils } from '@/router'
+} from '@tanstack/react-router';
+import { trpc, trpcUtils } from '@/router';
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: DashboardLayout,
-})
+});
 
 function DashboardLayout() {
-  const router = useRouter()
+  const router = useRouter();
   const logoutMutation = useMutation(
     trpc.auth.logout.mutationOptions({
       onSuccess: async () => {
-        await trpcUtils.auth.isAuthenticated.refetch()
-        await router.navigate({ to: '/login' })
+        await trpcUtils.auth.isAuthenticated.refetch();
+        await router.navigate({ to: '/login' });
       },
       onError(error) {
-        alert(`Error logging out: ${error.message}`)
+        alert(`Error logging out: ${error.message}`);
       },
     }),
-  )
+  );
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to logout?')) {
-      logoutMutation.mutate()
+      logoutMutation.mutate();
     }
-  }
+  };
 
   return (
     <div className="h-full p-2">
@@ -73,5 +73,5 @@ function DashboardLayout() {
       <hr className="pb-6" />
       <Outlet />
     </div>
-  )
+  );
 }

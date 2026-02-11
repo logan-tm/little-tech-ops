@@ -1,14 +1,14 @@
 {
   "name": "@packages/database",
   "version": "0.0.1",
+  "exports": {
+    ".": "./dist/index.js",
+    "./users": "./dist/modules/users/index.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json"
-  },
-  "exports": {
-    ".": "./dist/index.js",
-    "./users": "./dist/modules/users/index.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

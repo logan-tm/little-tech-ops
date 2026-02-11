@@ -1,15 +1,15 @@
-import bcrypt from "bcryptjs";
-import type { UserService } from "@packages/database";
 import type { CacheService } from "@packages/cache";
-import type { CookieService } from "../cookie/cookie.service";
+import type { UserService } from "@packages/database";
 import type { AuthenticatedContext, Context } from "../../context";
+import type { CookieService } from "../cookie/cookie.service";
+import bcrypt from "bcryptjs";
 import { UnauthorizedError } from "../../lib/errors";
 
-const getRequestMetadataForToken = (req: AuthenticatedContext["req"]) => {
+function getRequestMetadataForToken(req: AuthenticatedContext["req"]) {
   const userAgent = req.headers["user-agent"];
   const ip = req.ip;
   return { userAgent, ip };
-};
+}
 
 export class AuthService {
   constructor(
@@ -17,6 +17,7 @@ export class AuthService {
     private cookieService: CookieService,
     private userService: UserService,
   ) {}
+
   async login(
     input: { email: string; password: string },
     ctx: Context,
@@ -77,7 +78,7 @@ export class AuthService {
       }
 
       const user = await this.userService.getUserById(
-        parseInt(tokenData.userId),
+        Number.parseInt(tokenData.userId),
       );
       if (!user) {
         throw UnauthorizedError("Invalid refresh token");

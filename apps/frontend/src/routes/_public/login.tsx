@@ -1,47 +1,47 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { trpc, trpcUtils } from '@/router'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { trpc, trpcUtils } from '@/router';
 // import { useAuth } from '@/contexts/AuthContext'
 
 export const Route = createFileRoute('/_public/login')({
   component: LoginComponent,
-})
+});
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-})
+});
 // type FormData = z.infer<typeof loginSchema>
 
 function LoginComponent() {
   // const auth = useAuth()
-  const router = useRouter()
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
-  })
+  });
   const loginMutation = useMutation(
     trpc.auth.login.mutationOptions({
       onSuccess: async () => {
-        await trpcUtils.auth.isAuthenticated.refetch()
-        await router.invalidate()
+        await trpcUtils.auth.isAuthenticated.refetch();
+        await router.invalidate();
       },
       onError(error) {
-        alert(error.message)
+        alert(error.message);
       },
     }),
-  )
+  );
 
   return (
     <form
       className="py-4"
-      onSubmit={handleSubmit((data) => loginMutation.mutate(data))}
+      onSubmit={handleSubmit(data => loginMutation.mutate(data))}
     >
       <div className="flex gap-2">
         <label htmlFor="email">Email:</label>
@@ -61,5 +61,5 @@ function LoginComponent() {
       </div>
       <p>{errors.email?.message}</p>
     </form>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 # docker-compose.yml
 # credit: https://sevic.dev/notes/postgres-redis-docker-compose/
-version: "3.8"
+version: '3.8'
 services:
   postgres:
     image: postgres:alpine

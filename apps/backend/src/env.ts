@@ -1,7 +1,7 @@
-import { z } from "zod/v3";
+import { z } from 'zod/v3';
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production"]),
+  NODE_ENV: z.enum(['development', 'production']),
   DATABASE_URL: z.string(),
   REDIS_URL: z.string(),
   JWT_ACCESS_TOKEN_SECRET: z.string(),

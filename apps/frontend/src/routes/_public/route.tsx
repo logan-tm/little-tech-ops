@@ -1,11 +1,11 @@
 import {
-  Link,
-  Outlet,
   createFileRoute,
   isRedirect,
+  Link,
+  Outlet,
   redirect,
-} from '@tanstack/react-router'
-import { z } from 'zod'
+} from '@tanstack/react-router';
+import { z } from 'zod';
 
 export const Route = createFileRoute('/_public')({
   validateSearch: z.object({
@@ -15,15 +15,17 @@ export const Route = createFileRoute('/_public')({
     try {
       // console.log("CHECKING AUTH IN 'PUBLIC'...")
       if (isAuthenticated) {
-        throw redirect({ to: search.redirect || '/dashboard' })
+        throw redirect({ to: search.redirect || '/dashboard' });
       }
-    } catch (error) {
-      if (isRedirect(error)) throw error
-      console.log(error)
+    }
+    catch (error) {
+      if (isRedirect(error))
+        throw error;
+      console.log(error);
     }
   },
   component: App,
-})
+});
 
 function App() {
   return (
@@ -62,5 +64,5 @@ function App() {
       <hr />
       <Outlet />
     </div>
-  )
+  );
 }

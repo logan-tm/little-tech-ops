@@ -1,4 +1,4 @@
-import type { User } from '@packages/database/users';
+import type { User } from "@packages/database/users";
 
 export interface JWTPayload {
   user: User;

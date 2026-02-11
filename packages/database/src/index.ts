@@ -1,5 +1,5 @@
-import { UserService } from './modules/users/service';
-import { createDatabaseClient, createDrizzle } from './root';
+import { UserService } from "./modules/users/service";
+import { createDatabaseClient, createDrizzle } from "./root";
 
 export async function createDatabaseServices(url: string) {
   const client = await createDatabaseClient(url);

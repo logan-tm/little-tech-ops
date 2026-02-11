@@ -1,20 +1,20 @@
-import { createCacheService } from '@packages/cache';
+import { createCacheService } from "@packages/cache";
 
-import { createDatabaseServices } from '@packages/database';
+import { createDatabaseServices } from "@packages/database";
 import {
   appRouter,
   AuthService,
   CookieService,
   createContextWrapper,
-} from '@packages/trpc';
-import * as trpcExpress from '@trpc/server/adapters/express';
-import cors from 'cors';
+} from "@packages/trpc";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import cors from "cors";
 
-import express from 'express';
-import { env } from './env';
-import 'dotenv/config';
+import express from "express";
+import { env } from "./env";
+// import "dotenv/config";
 
-process.on('uncaughtException', (err) => {
+process.on("uncaughtException", (err) => {
   console.error(`UNCAUGHT: ${err}`);
 });
 
@@ -33,7 +33,7 @@ async function main() {
   const app = express();
   app.use(cors({ credentials: true }));
   app.use(
-    '/trpc',
+    "/trpc",
     trpcExpress.createExpressMiddleware({
       router: appRouter,
       createContext: createContextWrapper({
@@ -48,6 +48,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('Error starting server:', error);
+  console.error("Error starting server:", error);
   process.exit(1);
 });

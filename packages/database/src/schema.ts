@@ -1,4 +1,4 @@
-import * as userSchema from './modules/users/schema';
+import * as userSchema from "./modules/users/schema";
 
 export const schema = {
   ...userSchema,

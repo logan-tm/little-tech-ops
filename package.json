@@ -28,10 +28,10 @@
     "clean": "npm run clean --workspaces --if-present",
     "build:packages": "nx run-many -t build -p \"packages/*\"",
     "build:server": "nx run-many -t build -p \"packages/*\" -p \"apps/backend\"",
-    "lint:packages": "eslint packages/**/src/**/*.ts",
-    "lint:packages:fix": "eslint --fix packages/**/src/**/*.ts",
-    "lint:server": "eslint apps/backend/**/src/**/*.ts",
-    "lint:server:fix": "eslint --fix apps/backend/**/src/**/*.ts",
+    "lint:packages": "eslint 'packages/**/*.ts'",
+    "lint:packages:fix": "eslint --fix 'packages/**/*.ts'",
+    "lint:server": "eslint 'apps/backend/**/src/**/*.ts'",
+    "lint:server:fix": "eslint --fix 'apps/backend/**/src/**/*.ts'",
     "lint:all": "npm run lint:packages && npm run lint:server"
   },
   "devDependencies": {

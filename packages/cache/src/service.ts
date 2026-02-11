@@ -1,9 +1,9 @@
-import type { User } from '@packages/database/users';
-import type { Redis } from 'ioredis';
+import type { User } from "@packages/database/users";
+import type { Redis } from "ioredis";
 
-import type { JWTPayload, JWTVerifyResult, RefreshTokenData } from './types';
-import { randomUUID } from 'node:crypto';
-import jwt from 'jsonwebtoken';
+import type { JWTPayload, JWTVerifyResult, RefreshTokenData } from "./types";
+import { randomUUID } from "node:crypto";
+import jwt from "jsonwebtoken";
 
 export class CacheService {
   constructor(
@@ -32,8 +32,8 @@ export class CacheService {
       userId: data.userId,
       createdAt: data.createdAt.toString(),
       expiresAt: data.expiresAt.toString(),
-      userAgent: data.userAgent || '',
-      ipAddress: data.ipAddress || '',
+      userAgent: data.userAgent || "",
+      ipAddress: data.ipAddress || "",
     });
 
     await this.redis.expire(key, ttl);
@@ -106,7 +106,7 @@ export class CacheService {
       const err = error as { name: string; message: string };
       return {
         verified: false,
-        expired: err.name === 'TokenExpiredError',
+        expired: err.name === "TokenExpiredError",
         payload: null,
       };
     }
@@ -127,7 +127,7 @@ export class CacheService {
       const err = error as { name: string; message: string };
       return {
         verified: false,
-        expired: err.name === 'TokenExpiredError',
+        expired: err.name === "TokenExpiredError",
         payload: null,
       };
     }
@@ -160,13 +160,13 @@ export class CacheService {
 
   generateAccessToken(user: User, sessionId: string): string {
     return jwt.sign({ user, sessionId }, this.secrets.accessTokenSecret, {
-      expiresIn: '15m',
+      expiresIn: "15m",
     });
   }
 
   generateRefreshToken(userId: string, sessionId: string): string {
     return jwt.sign({ userId, sessionId }, this.secrets.refreshTokenSecret, {
-      expiresIn: '7d',
+      expiresIn: "7d",
     });
   }
 }

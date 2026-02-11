@@ -1,5 +1,5 @@
-import type { TRPC_ERROR_CODE_KEY } from '@trpc/server/rpc';
-import { TRPCError } from '@trpc/server';
+import type { TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
+import { TRPCError } from "@trpc/server";
 
 class CustomTrpcError {
   constructor(
@@ -16,13 +16,13 @@ class CustomTrpcError {
 }
 
 export function InternalServerError(message: string) {
-  return new CustomTrpcError('INTERNAL_SERVER_ERROR', message);
+  return new CustomTrpcError("INTERNAL_SERVER_ERROR", message);
 }
 
 export function UnauthorizedError(message: string) {
-  return new CustomTrpcError('UNAUTHORIZED', message);
+  return new CustomTrpcError("UNAUTHORIZED", message);
 }
 
 export function ForbiddenError(message: string) {
-  return new CustomTrpcError('FORBIDDEN', message);
+  return new CustomTrpcError("FORBIDDEN", message);
 }

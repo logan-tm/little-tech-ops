@@ -1,9 +1,9 @@
-import type { Permission } from '@packages/rules';
-import type { UserSession } from './auth.types';
-import { getPermissionsByRole } from '@packages/rules';
-import { z } from 'zod/v3';
-import { router } from '../../index';
-import { authenticatedProcedure, publicProcedure } from '../../procedures';
+import type { Permission } from "@packages/rules";
+import type { UserSession } from "./auth.types";
+import { getPermissionsByRole } from "@packages/rules";
+import { z } from "zod/v3";
+import { router } from "../../index";
+import { authenticatedProcedure, publicProcedure } from "../../procedures";
 
 export const authRouter = router({
   login: publicProcedure

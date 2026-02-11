@@ -1,8 +1,8 @@
-import type { Permission } from '@packages/rules';
-import type { AuthenticatedContext } from './context';
-import type { UserSession } from './modules/auth/auth.types';
-import { hasAllPermissions } from '@packages/rules';
-import { t } from './root';
+import type { Permission } from "@packages/rules";
+import type { AuthenticatedContext } from "./context";
+import type { UserSession } from "./modules/auth/auth.types";
+import { hasAllPermissions } from "@packages/rules";
+import { t } from "./root";
 
 export const publicProcedure = t.procedure.use(async ({ ctx, next }) => {
   const { req, res, services } = ctx;
@@ -16,8 +16,8 @@ export const publicProcedure = t.procedure.use(async ({ ctx, next }) => {
 
   if (accessTokenExists && refreshTokenExists) {
     // Happy path!
-    const { verified, expired, payload }
-      = services.cacheService.verifyAccessToken(accessToken);
+    const { verified, expired, payload } =
+      services.cacheService.verifyAccessToken(accessToken);
 
     const session: UserSession = {
       id: payload?.sessionId || null,
@@ -58,10 +58,10 @@ export const publicProcedure = t.procedure.use(async ({ ctx, next }) => {
   if (!accessTokenExists && refreshTokenExists) {
     // Just needs a refresh
     try {
-      const { accessToken: accessTokenAfterRefresh }
-        = await services.authService.refresh(ctx);
-      const { verified, expired, payload }
-        = services.cacheService.verifyAccessToken(accessTokenAfterRefresh);
+      const { accessToken: accessTokenAfterRefresh } =
+        await services.authService.refresh(ctx);
+      const { verified, expired, payload } =
+        services.cacheService.verifyAccessToken(accessTokenAfterRefresh);
       const session: UserSession = {
         id: payload?.sessionId || null,
         user: payload?.user || null,
@@ -76,6 +76,7 @@ export const publicProcedure = t.procedure.use(async ({ ctx, next }) => {
       });
     }
     catch (error) {
+      console.error("Error refreshing access token:", error);
       return next({
         ctx: {
           ...ctx,
@@ -97,7 +98,7 @@ export const authenticatedProcedure = publicProcedure.use(
   async ({ ctx, next }) => {
     const { session } = ctx;
     if (!session || !session.verified || session.expired) {
-      throw new Error('Unauthorized');
+      throw new Error("Unauthorized");
     }
     return next({
       ctx: {
@@ -113,7 +114,7 @@ export const authenticatedProcedure = publicProcedure.use(
 export function permissionedProcedure(requiredPermissions: Permission[]) {
   return authenticatedProcedure.use(async ({ ctx, next }) => {
     if (!hasAllPermissions(requiredPermissions).evaluate(ctx.session.user)) {
-      throw new Error('Unauthorized');
+      throw new Error("Unauthorized");
     }
 
     return next({ ctx });

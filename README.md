@@ -62,11 +62,11 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-LTO is a full-stack web application that simulates a warehouse operations environment with a complete authentication and authorization system. Visitors to the app can sign in as different warehouse roles—from basic users checking out equipment and completing jobs, to supervisors managing inventory and assignments, managers overseeing vehicles, and admins controlling user access.
+LTO is a full-stack web application that simulates a warehouse operations environment with a complete authentication and authorization system. Visitors to the app can sign in as different warehouse roles—from basic users checking out vehicles and completing jobs, to managers overseeing job assignments and vehicles, and admins controlling user access and changes.
 
-The application demonstrates a hierarchical permissions model where each role inherits capabilities from the roles below it. Users can check out equipment and vehicles, accept job assignments, and complete simulated work orders. Supervisors gain the ability to assign jobs and manage inventory. Managers can additionally oversee the vehicle fleet. Admins have full control over user management.
+The application demonstrates an in-depth permissions model where each role inherits permissions based on a matrix. See the matrix [here](packages/rules/src/permissions.ts).
 
-Built as a portfolio piece to demonstrate full-stack development capabilities, the project evolved into a comprehensive exploration of role-based access control (RBAC), session management, and secure authentication patterns. The "warehouse" theme provides an intuitive framework for showcasing how different permission levels interact within a single application.
+Built as a portfolio piece to demonstrate my full-stack development capabilities, the project evolved into an exploration of role-based access control (RBAC), session management, and secure authentication patterns. The "warehouse" theme was a recommendation from a friend.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -74,7 +74,11 @@ Built as a portfolio piece to demonstrate full-stack development capabilities, t
 
 [![Tanstack][Tanstack.com]][Tanstack-url]
 [![React][React.js]][React-url]
+[![Nodejs][Nodejs.org]][Nodejs-url]
+[![Expressjs][Expressjs.com]][Expressjs-url]
 [![tRPC][tRPC.io]][tRPC-url]
+[![PostgreSQL][Postgresql.org]][Postgresql-url]
+[![Redis][Redis.io]][Redis-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -85,37 +89,51 @@ Built as a portfolio piece to demonstrate full-stack development capabilities, t
 <!-- This is an example of how you may give instructions on setting up your project locally.
 To get a local copy up and running follow these simple example steps. -->
 
-TODO
-
 ### Prerequisites
 
-<!-- This is an example of how to list things you need to use the software and how to install them.
+<!-- This is an example of how to list things you need to use the software and how to install them. -->
 
-- npm
-  ```sh
-  npm install npm@latest -g
-  ``` -->
+- Docker & Docker Compose
+- Node.js v25+
+  - Support for previous versions possible
+
+### Installation (dev)
+
+1. Clone the repo and cd into the directory
+   ```sh
+   git clone https://github.com/logan-tm/little-tech-ops.git && cd little-tech-ops
+   ```
+2. Install NPM packages
+   ```sh
+   node --version && npm install --include=dev && npm install --include=dev --workspaces
+   ```
+3. Stand up backend services
+   ```sh
+   docker compose up
+   ```
+4. \[Optional\] Open the following urls to view live data:
+   ```sh
+   http://localhost:8081 (Redis commander)
+   http://localhost:8085 (pgweb)
+   ```
+
+### Installation (production)
 
 TODO
 
-### Installation
-
-TODO
-
-<!-- 1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+<!-- 1. Clone the repo
    ```sh
    git clone https://github.com/logan-tm/little-tech-ops.git
    ```
-3. Install NPM packages
+2. Install NPM packages
    ```sh
-   npm install
+   node --version && npm install
    ```
-4. Enter your API in `config.js`
+3. Enter your API in `config.js`
    ```js
    const API_KEY = "ENTER YOUR API";
    ```
-5. Change git remote url to avoid accidental pushes to base project
+4. Change git remote url to avoid accidental pushes to base project
    ```sh
    git remote set-url origin logan-tm/little-tech-ops
    git remote -v # confirm the changes
@@ -140,13 +158,12 @@ TODO
 ## Roadmap
 
 - [x] Implement authentication flow with JWT tokens
-- [ ] Implement permissions structure with roles
-- [ ] Implement jobs, equipment inventory, and vehicles
+- [x] Implement permissions structure with roles
+- [ ] Implement jobs and vehicles
 - [ ] Implement role-based actions:
-  - [ ] Users can checkout equipment, vehicles
   - [ ] Users can "complete" jobs
-  - [ ] Supervisors can manage inventory and job assignments
-  - [ ] Managers can manage vehicles
+  - [ ] Users can checkout vehicles
+  - [ ] Managers can manage vehicles and job assignments
   - [ ] Admins can manage users
 
 See the [open issues](https://github.com/logan-tm/little-tech-ops/issues) for a full list of proposed features (and known issues).
@@ -210,3 +227,11 @@ Project Link: [https://github.com/logan-tm/little-tech-ops](https://github.com/l
 [Tanstack-url]: https://tanstack.com
 [tRPC.io]: https://img.shields.io/badge/trpc-2596BE?style=for-the-badge&logo=tRPC&logoColor=FFFFFF
 [tRPC-url]: https://trpc.io
+[Postgresql.org]: https://img.shields.io/badge/postgresql-4169e1?style=for-the-badge&logo=postgresql&logoColor=white
+[Postgresql-url]: https://postgresql.org
+[Nodejs.org]: https://img.shields.io/badge/node.js-339933?style=for-the-badge&logo=Node.js&logoColor=white
+[Nodejs-url]: https://Nodejs.org
+[Expressjs.com]: https://img.shields.io/badge/express.js-000000?style=for-the-badge&logo=express&logoColor=white
+[Expressjs-url]: https://expressjs.com
+[Redis.io]: https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white
+[Redis-url]: https://redis.io

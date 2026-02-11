@@ -1,5 +1,6 @@
 import { z } from "zod/v3";
-import { protectedProcedure, publicProcedure, router } from "../../trpc";
+import { authenticatedProcedure, publicProcedure } from "../../trpc/procedures";
+import { router } from "../../trpc/init";
 import { authService } from "./auth.service";
 import { permissionService } from "../permission/permission.service";
 import type { Permission } from "../permission/permission.types";
@@ -16,10 +17,10 @@ export const authRouter = router({
     .mutation(async ({ input, ctx }) => {
       await authService.login(input, ctx);
     }),
-  logout: protectedProcedure.mutation(async ({ ctx }) => {
+  logout: authenticatedProcedure.mutation(async ({ ctx }) => {
     await authService.logout(ctx);
   }),
-  logoutAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
+  logoutAllSessions: authenticatedProcedure.mutation(async ({ ctx }) => {
     await authService.logoutAllSessions(ctx);
   }),
   register: publicProcedure

@@ -1,9 +1,10 @@
 import { z } from "zod/v3";
-import { protectedProcedure, publicProcedure, router } from "../../trpc";
+import { protectedProcedure, publicProcedure } from "../../trpc";
+import { router } from "../../index";
 import { authService } from "./auth.service";
 import { permissionService } from "../permission/permission.service";
 import type { Permission } from "../permission/permission.types";
-import type { UserSession } from "../../types";
+import type { UserSession } from "./auth.types";
 
 export const authRouter = router({
   login: publicProcedure

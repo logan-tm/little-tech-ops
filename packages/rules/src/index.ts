@@ -1,67 +1,30 @@
 // Inspired by ArjanCodes' specification for a Predicate system
 // https://github.com/ArjanCodes/examples/blob/main/2026/spec
 
-import { defineRule } from "./rules";
+import type { User } from "@packages/database";
+import { definePredicate } from "./lib/predicate";
+import { type Permission, getPermissionsByRole } from "./permissions";
 
-type User = {
-  is_admin: boolean;
-  is_active: boolean;
-  account_age: number; // in days
-  is_banned: boolean;
-  country: string;
-  credit_score: number;
-  has_manual_override: boolean;
+const defineUserPredicate = definePredicate<User>();
+
+// export const isRole = defineUserPredicate(
+//   (user: User, role: User["role"]) => user.role === role,
+// );
+
+export const hasPermission = defineUserPredicate(
+  (user: User, permission: Permission) => {
+    return getPermissionsByRole(user.role).includes(permission);
+  },
+);
+
+// Helper function for common use case of checking permissions
+export const hp = (permission: Permission) => hasPermission(permission).build();
+
+export const rules = {
+  canAccessVehicleList: hp("LIST:vehicles"), // rules.canAccessVehicleList(user) => true/false
 };
 
-const isAdmin = defineRule<User>((user: User) => {
-  return user.is_admin;
-});
+export const canAccessVehicleListRule = hasPermission("LIST:vehicles").build();
 
-const isActive = defineRule<User>((user: User) => {
-  return user.is_active;
-});
-
-const accountAgeGreaterThan = defineRule<User>((user: User, days: number) => {
-  return user.account_age > days;
-});
-
-const isInNorthAmerica = defineRule<User>((user: User) => {
-  const naCountries = ["US", "CA", "MX"];
-  return naCountries.includes(user.country);
-});
-
-const userCanAccess = isAdmin()
-  .or(isActive().and(accountAgeGreaterThan(30)))
-  .build();
-
-const userIsInNorthAmerica = isInNorthAmerica().build();
-
-function main() {
-  const user: User = {
-    is_admin: false,
-    is_active: true,
-    account_age: 45,
-    is_banned: false,
-    country: "US",
-    credit_score: 700,
-    has_manual_override: false,
-  };
-
-  const user2: User = {
-    is_admin: false,
-    is_active: true,
-    account_age: 15,
-    is_banned: false,
-    country: "JP",
-    credit_score: 700,
-    has_manual_override: false,
-  };
-
-  console.log(`User can access: ${userCanAccess(user)}`);
-  console.log(`User2 can access: ${userCanAccess(user2)}`);
-
-  console.log(`User is in North America: ${userIsInNorthAmerica(user)}`);
-  console.log(`User2 is in North America: ${userIsInNorthAmerica(user2)}`);
-}
-
-main();
+// Re-export types and functions for easier access
+export { type Permission, getPermissionsByRole };

@@ -1,4 +1,4 @@
-import type { User } from '@packages/database/types';
+import type { User } from "@packages/database/users";
 
 export type VerifiedUserSession = {
   id: string;
@@ -13,5 +13,3 @@ export type UserSession = {
   verified: boolean;
   expired: boolean;
 };
-
-export type * from '@packages/database';

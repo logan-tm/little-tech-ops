@@ -1,0 +1,50 @@
+# docker-compose.yml
+# credit: https://sevic.dev/notes/postgres-redis-docker-compose/
+version: "3.8"
+services:
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: lto
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+    ports:
+      - 5435:5432
+    restart: on-failure:3
+  pgweb:
+    image: sosedoff/pgweb
+    depends_on:
+      - postgres
+    environment:
+      PGWEB_DATABASE_URL: postgres://admin:admin@postgres:5432/lto?sslmode=disable
+    ports:
+      - 8085:8081
+    restart: on-failure:3
+  redis:
+    image: redis:latest
+    command: redis-server
+    volumes:
+      - redis:/var/lib/redis
+      - redis-config:/usr/local/etc/redis/redis.conf
+    ports:
+      - 6379:6379
+    networks:
+      - redis-network
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=root
+      - HTTP_PASSWORD=qwerty
+    ports:
+      - 8081:8081
+    networks:
+      - redis-network
+    depends_on:
+      - redis
+volumes:
+  redis:
+  redis-config:
+networks:
+  redis-network:
+    driver: bridge

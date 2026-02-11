@@ -1,4 +1,4 @@
-import type { User } from "@packages/database/types";
+import type { User } from "@packages/database";
 
 const AVAILABLE_PERMISSIONS = [
   "GET:user",
@@ -20,6 +20,7 @@ const AVAILABLE_PERMISSIONS = [
   "DELETE:job",
   "UPDATE:job",
   "ASSIGN:job",
+  "WORK:job",
 ] as const;
 export type Permission = (typeof AVAILABLE_PERMISSIONS)[number];
 
@@ -43,6 +44,7 @@ const PERMISSIONS_MAP: { [K in Permission]: Array<User["role"]> } = {
   "DELETE:job": ["manager"],
   "UPDATE:job": ["manager"],
   "ASSIGN:job": ["manager"],
+  "WORK:job": ["technician"],
 };
 
 // Credit to reddit where it's due
@@ -58,11 +60,4 @@ export const getPermissionsByRole = (role: User["role"]) => {
 
 export const getRolesWithPermission = (permission: Permission) => {
   return PERMISSIONS_MAP[permission];
-};
-
-export const roleHasPermission = (
-  role: User["role"],
-  permission: Permission,
-) => {
-  return getRolesWithPermission(permission).includes(role);
 };

@@ -1,8 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import {
-  type Permission,
-  roleHasPermission,
-} from "@packages/rules/permissions";
+import { type Permission, hasPermission } from "@packages/rules";
 import { UnauthorizedError } from "../lib/errors";
 import type { VerifiedUserSession } from "../types";
 import { t } from "./init";
@@ -45,9 +42,9 @@ export const authenticatedProcedure = publicProcedure.use(
 
 export const procedurePermittedBy = (permission: Permission) => {
   return authenticatedProcedure.use(async ({ ctx, next }) => {
-    if (!roleHasPermission(ctx.session.user.role, permission)) {
+    if (!hasPermission(permission).evaluate(ctx.session.user)) {
       throw UnauthorizedError(
-        `User role '${ctx.session.user.role}' lacks permission '${permission}'`,
+        `User with role '${ctx.session.user.role}' lacks permission '${permission}'`,
       );
     }
 

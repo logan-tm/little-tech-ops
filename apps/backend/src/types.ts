@@ -7,7 +7,7 @@
     },
  */
 
-import type { User } from "./modules/user/user.types";
+import type { User } from "@packages/database/users";
 
 export type VerifiedUserSession = {
   id: string;

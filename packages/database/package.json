@@ -8,15 +8,13 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./types": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/types.js"
-    }
+    "./users": "./dist/modules/users/index.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.1",
-    "drizzle-zod": "^0.8.3"
+    "drizzle-zod": "^0.8.3",
+    "postgres": "^3.4.8"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

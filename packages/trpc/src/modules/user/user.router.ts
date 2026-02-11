@@ -2,7 +2,7 @@ import { z } from "zod/v3";
 import { userService } from "@packages/database";
 import { protectedProcedure, router } from "../../trpc";
 
-import { insertUserSchema } from "../../db/schema";
+import { insertUserSchema } from "@packages/database";
 // import { userService } from "./user.service";
 
 export const userRouter = router({

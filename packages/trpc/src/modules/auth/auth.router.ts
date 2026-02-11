@@ -1,9 +1,7 @@
 import { z } from "zod/v3";
-import { protectedProcedure, publicProcedure } from "../../trpc";
+import { authenticatedProcedure, publicProcedure } from "../../procedures";
 import { router } from "../../index";
-import { authService } from "./auth.service";
-import { permissionService } from "../permission/permission.service";
-import type { Permission } from "../permission/permission.types";
+import { type Permission, getPermissionsByRole } from "@packages/rules";
 import type { UserSession } from "./auth.types";
 
 export const authRouter = router({
@@ -15,13 +13,13 @@ export const authRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await authService.login(input, ctx);
+      await ctx.services.authService.login(input, ctx);
     }),
-  logout: protectedProcedure.mutation(async ({ ctx }) => {
-    await authService.logout(ctx);
+  logout: authenticatedProcedure.mutation(async ({ ctx }) => {
+    await ctx.services.authService.logout(ctx);
   }),
-  logoutAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
-    await authService.logoutAllSessions(ctx);
+  logoutAllSessions: authenticatedProcedure.mutation(async ({ ctx }) => {
+    await ctx.services.authService.logoutAllSessions(ctx);
   }),
   register: publicProcedure
     .input(
@@ -33,7 +31,7 @@ export const authRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await authService.register(input, ctx); // also logs user in
+      await ctx.services.authService.register(input, ctx); // also logs user in
     }),
   getSession: publicProcedure.query(
     async ({
@@ -48,9 +46,8 @@ export const authRouter = router({
         session !== undefined && session.verified && !session.expired;
       const permissions =
         isAuthenticated && !!session.user
-          ? permissionService.getPermissionsByRole(session.user.role)
+          ? getPermissionsByRole(session.user.role)
           : null;
-      // console.log(`CHECKING AUTH STATUS: ${isAuthenticated}`);
       return {
         isAuthenticated,
         session: session || null,

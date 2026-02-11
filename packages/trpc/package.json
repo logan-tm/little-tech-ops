@@ -14,6 +14,9 @@
     }
   },
   "dependencies": {
+    "@packages/cache": "*",
+    "@packages/database": "*",
+    "@packages/rules": "*",
     "@trpc/client": "^11.8.1",
     "@trpc/server": "^11.8.1"
   },

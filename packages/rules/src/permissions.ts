@@ -1,4 +1,4 @@
-import type { User } from "@packages/database";
+import type { User } from "@packages/database/users";
 
 const AVAILABLE_PERMISSIONS = [
   "GET:user",

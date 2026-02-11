@@ -7,7 +7,8 @@
     "dev": "nodemon --exec tsx src/index.ts",
     "db:push": "npx drizzle-kit push",
     "dev:db:seed": "npx tsx src/db/seed.ts",
-    "dev:db:reset": "rm local.db && npm run db:push && npm run dev:db:seed"
+    "dev:db:reset": "rm local.db && npm run db:push && npm run dev:db:seed",
+    "build": "tsc -p tsconfig.json"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "@packages/cache": "*",
     "@packages/database": "*",
     "@packages/rules": "*",
+    "@packages/trpc": "*",
     "@trpc/server": "^11.8.1",
     "bcryptjs": "^3.0.3",
     "cookies": "^0.9.1",

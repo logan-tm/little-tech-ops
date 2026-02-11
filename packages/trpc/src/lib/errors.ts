@@ -5,7 +5,7 @@ class CustomTrpcError {
   constructor(
     code: TRPC_ERROR_CODE_KEY,
     message: string,
-    data?: Record<string, any>
+    data?: Record<string, any>,
   ) {
     return new TRPCError({
       code,

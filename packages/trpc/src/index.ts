@@ -1,7 +1,6 @@
-import { initTRPC } from "@trpc/server";
-import type { Context } from "./context";
+export { createContextWrapper } from "./context";
+export * from "./root";
+export * from "./router";
 
-const t = initTRPC.context<Context>().create();
-
-export const router = t.router;
-export const publicProcedure = t.procedure;
+export { AuthService } from "./modules/auth/auth.service";
+export { CookieService } from "./modules/cookie/cookie.service";

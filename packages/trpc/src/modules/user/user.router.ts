@@ -1,22 +1,32 @@
 import { z } from "zod/v3";
-import { userService } from "@packages/database";
-import { protectedProcedure, router } from "../../trpc";
+import { permissionedProcedure } from "../../procedures";
+import { router } from "../../index";
 
-import { insertUserSchema } from "@packages/database";
-// import { userService } from "./user.service";
+import { insertUserSchema } from "@packages/database/users";
 
 export const userRouter = router({
-  list: protectedProcedure.query(async () => await userService.listUsers()),
-  getById: protectedProcedure
+  list: permissionedProcedure(["LIST:users"]).query(
+    async ({ ctx }) => await ctx.services.userService.listUsers(),
+  ),
+  getById: permissionedProcedure(["GET:user"])
     .input(z.number())
-    .query(async ({ input }) => await userService.getUserById(input)),
-  create: protectedProcedure
+    .query(
+      async ({ ctx, input }) =>
+        await ctx.services.userService.getUserById(input),
+    ),
+  create: permissionedProcedure(["CREATE:user"])
     .input(insertUserSchema.strict())
-    .mutation(async ({ input }) => await userService.createUser(input)),
-  remove: protectedProcedure
+    .mutation(
+      async ({ ctx, input }) =>
+        await ctx.services.userService.createUser(input),
+    ),
+  remove: permissionedProcedure(["DELETE:user"])
     .input(z.number())
-    .mutation(async (opts) => await userService.deleteUser(opts.input)),
-  update: protectedProcedure
+    .mutation(
+      async ({ ctx, input }) =>
+        await ctx.services.userService.deleteUser(input),
+    ),
+  update: permissionedProcedure(["UPDATE:user"])
     .input(
       z.object({
         id: z.number(),
@@ -27,8 +37,8 @@ export const userRouter = router({
         role: z.enum(["admin", "manager", "technician"]).optional(),
       }),
     )
-    .mutation(async (opts) => {
-      const { id, ...updateData } = opts.input;
-      return await userService.updateUser(id, updateData);
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updateData } = input;
+      return await ctx.services.userService.updateUser(id, updateData);
     }),
 });

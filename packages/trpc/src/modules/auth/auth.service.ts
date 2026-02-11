@@ -1,21 +1,30 @@
 import bcrypt from "bcryptjs";
-import type { AuthenticatedContext, Context } from "../../trpc";
+import type { UserService } from "@packages/database";
+import type { CacheService } from "@packages/cache";
+import type { CookieService } from "../cookie/cookie.service";
+import type { AuthenticatedContext, Context } from "../../context";
 import { UnauthorizedError } from "../../lib/errors";
 
-import { cacheService } from "../cache/cache.service";
+const getRequestMetadataForToken = (req: AuthenticatedContext["req"]) => {
+  const userAgent = req.headers["user-agent"];
+  const ip = req.ip;
+  return { userAgent, ip };
+};
 
-import { cookieService } from "../cookie/cookie.service";
-import { userService } from "../user/user.service";
-
-export const authService = {
+export class AuthService {
+  constructor(
+    private cacheService: CacheService,
+    private cookieService: CookieService,
+    private userService: UserService,
+  ) {}
   async login(
     input: { email: string; password: string },
-    ctx: Context
+    ctx: Context,
   ): Promise<void> {
     try {
-      const { user, passwordCorrect } = await userService.checkLogin(
+      const { user, passwordCorrect } = await this.userService.checkLogin(
         input.email,
-        input.password
+        input.password,
       );
 
       if (!user || !passwordCorrect) {
@@ -23,89 +32,97 @@ export const authService = {
       }
 
       // Updates cache with refresh token
-      const { accessToken, refreshToken } = await cacheService.generateTokens(
-        user,
-        ctx.req
-      );
+      const { accessToken, refreshToken } =
+        await this.cacheService.generateTokens(
+          user,
+          getRequestMetadataForToken(ctx.req),
+        );
 
       // Set the cookies for the client
-      cookieService.setAccessToken(ctx, accessToken);
-      cookieService.setRefreshToken(ctx, refreshToken);
+      this.cookieService.setAccessToken(ctx.req, ctx.res, accessToken);
+      this.cookieService.setRefreshToken(ctx.req, ctx.res, refreshToken);
     } catch (error) {
       console.error("Login error:", (error as Error).message);
       throw error;
     }
-  },
+  }
 
   /**
    * Cycles both the accessToken and refreshTokens. If a valid refresh token
    * is not available, a 401 Unauthorized error is thrown
    */
   async refresh(
-    ctx: Context
+    ctx: Context,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
-      const { refreshToken } = cookieService.getCookieValues(ctx.req, ctx.res);
+      const { refreshToken } = this.cookieService.getCookieValues(
+        ctx.req,
+        ctx.res,
+      );
       if (!refreshToken) {
         throw UnauthorizedError("Refresh token required");
       }
 
       const { verified, payload } =
-        cacheService.verifyRefreshToken(refreshToken);
+        this.cacheService.verifyRefreshToken(refreshToken);
       if (!verified || !payload?.sessionId) {
         throw UnauthorizedError("Invalid refresh token");
       }
 
-      const tokenData = await cacheService.getRefreshToken(payload.sessionId);
+      const tokenData = await this.cacheService.getRefreshToken(
+        payload.sessionId,
+      );
       if (!tokenData) {
         throw UnauthorizedError("Token revoked or expired");
       }
 
-      const user = await userService.getUserById(parseInt(tokenData.userId));
+      const user = await this.userService.getUserById(
+        parseInt(tokenData.userId),
+      );
       if (!user) {
         throw UnauthorizedError("Invalid refresh token");
       }
 
-      await cacheService.deleteRefreshToken(tokenData.sessionId);
-      const tokens = await cacheService.generateTokens(user, ctx.req);
-      cookieService.setAccessToken(ctx, tokens.accessToken);
-      cookieService.setRefreshToken(ctx, tokens.refreshToken);
+      await this.cacheService.deleteRefreshToken(tokenData.sessionId);
+      const tokens = await this.cacheService.generateTokens(
+        user,
+        getRequestMetadataForToken(ctx.req),
+      );
+      this.cookieService.setAccessToken(ctx.req, ctx.res, tokens.accessToken);
+      this.cookieService.setRefreshToken(ctx.req, ctx.res, tokens.refreshToken);
       return tokens;
     } catch (error) {
-      // if (error instanceof jwt.JsonWebTokenError) {
-      //   throw UnauthorizedError("Invalid refresh token");
-      // }
       console.error("Refresh error:", (error as Error).message);
       throw error;
     }
-  },
+  }
 
   async logout(ctx: AuthenticatedContext) {
     try {
       const {
         session: { id },
       } = ctx;
-      await cacheService.deleteRefreshToken(id);
-      cookieService.clearCookies(ctx);
+      await this.cacheService.deleteRefreshToken(id);
+      this.cookieService.clearCookies(ctx.req, ctx.res);
     } catch (error) {
       console.error("Logout error:", (error as Error).message);
       throw error;
     }
-  },
+  }
 
   async logoutAllSessions(ctx: AuthenticatedContext) {
     const {
       session: { user },
     } = ctx;
     try {
-      await cacheService.revokeUserTokens(user.id.toString());
-      cookieService.clearCookies(ctx);
+      await this.cacheService.revokeUserTokens(user.id.toString());
+      this.cookieService.clearCookies(ctx.req, ctx.res);
     } catch (error) {
       throw new Error(
-        `Logout all sessions failed: ${(error as Error).message}`
+        `Logout all sessions failed: ${(error as Error).message}`,
       );
     }
-  },
+  }
 
   async register(
     input: {
@@ -114,33 +131,37 @@ export const authService = {
       email: string;
       password: string;
     },
-    ctx: Context
+    ctx: Context,
   ): Promise<void> {
     const { firstName, lastName, email, password } = input;
 
-    const existingUser = await userService.getUserByEmail(email);
+    const existingUser = await this.userService.getUserByEmail(email);
 
     if (existingUser) {
-      // TODO: create new error type for this
       throw new Error("User with this email already exists.");
     }
 
     const passwordHash = bcrypt.hashSync(password, 10);
 
-    const user = await userService.createUser({
+    const user = await this.userService.createUser({
       firstName,
       lastName,
       email,
-      passwordHash,
-      role: "user",
+      password: passwordHash,
+      role: "technician",
     });
 
-    const { accessToken, refreshToken } = await cacheService.generateTokens(
-      user,
-      ctx.req
-    );
+    if (!user) {
+      throw new Error("User creation failed");
+    }
 
-    cookieService.setAccessToken(ctx, accessToken);
-    cookieService.setRefreshToken(ctx, refreshToken);
-  },
-};
+    const { accessToken, refreshToken } =
+      await this.cacheService.generateTokens(
+        user,
+        getRequestMetadataForToken(ctx.req),
+      );
+
+    this.cookieService.setAccessToken(ctx.req, ctx.res, accessToken);
+    this.cookieService.setRefreshToken(ctx.req, ctx.res, refreshToken);
+  }
+}

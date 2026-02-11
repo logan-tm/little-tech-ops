@@ -1,15 +1,13 @@
 // Inspired by ArjanCodes' specification for a Predicate system
 // https://github.com/ArjanCodes/examples/blob/main/2026/spec
 
-import type { User } from "@packages/database";
+import type { User } from "@packages/database/users";
 import { definePredicate } from "./lib/predicate";
 import { type Permission, getPermissionsByRole } from "./permissions";
 
+// We can build some pretty elaborate rules with this system, but for now
+// we'll just check if a user has a specific permission.
 const defineUserPredicate = definePredicate<User>();
-
-// export const isRole = defineUserPredicate(
-//   (user: User, role: User["role"]) => user.role === role,
-// );
 
 export const hasPermission = defineUserPredicate(
   (user: User, permission: Permission) => {
@@ -17,14 +15,21 @@ export const hasPermission = defineUserPredicate(
   },
 );
 
+export const hasAllPermissions = defineUserPredicate(
+  (user: User, permissions: Permission[]) => {
+    const userPermissions = getPermissionsByRole(user.role);
+    return permissions.every((permission) =>
+      userPermissions.includes(permission),
+    );
+  },
+);
+
 // Helper function for common use case of checking permissions
-export const hp = (permission: Permission) => hasPermission(permission).build();
+const hp = (permission: Permission) => hasPermission(permission).build();
 
 export const rules = {
   canAccessVehicleList: hp("LIST:vehicles"), // rules.canAccessVehicleList(user) => true/false
 };
-
-export const canAccessVehicleListRule = hasPermission("LIST:vehicles").build();
 
 // Re-export types and functions for easier access
 export { type Permission, getPermissionsByRole };

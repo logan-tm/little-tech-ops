@@ -14,9 +14,8 @@
     "install:server": "cd apps/backend && npm install --include=dev",
     "install:all": "npm install --include=dev && npm run install:client && npm run install:server",
     "clean": "npm run clean --workspaces --if-present",
-    "build-database": "nx build @packages/database",
-    "build-trpc": "nx build @packages/database",
-    "build:packages": "nx run-many -t build -p \"packages/*\""
+    "build:packages": "nx run-many -t build -p \"packages/*\"",
+    "build:server": "nx run-many -t build -p \"packages/*\" -p \"apps/backend\""
   },
   "repository": {
     "type": "git",

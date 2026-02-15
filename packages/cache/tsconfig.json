@@ -1,11 +1,3 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "composite": true,
-    "rootDir": "./src",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "outDir": "./dist"
-  },
-  "include": ["./src/**/*.ts"]
+  "extends": "../../tsconfig.package.json"
 }

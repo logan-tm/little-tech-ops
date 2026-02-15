@@ -14,6 +14,9 @@ export default antfu(
   {
     rules: {
       "style/operator-linebreak": "off",
+      "style/brace-style": "off",
+      "unicorn/throw-new-error": "off",
+      "jsonc/sort-keys": "off",
     },
   },
   react({

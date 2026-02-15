@@ -1,11 +1,11 @@
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import type { QueryClient } from '@tanstack/react-query'
 import type { createTRPCQueryUtils } from '@trpc/react-query'
 import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query'
 import type { Permission } from '@packages/rules'
 import type { AppRouter } from '@packages/trpc'
 import type { UserSession } from '../../../backend/src/types'
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 interface RouterContext {
   trpc: TRPCOptionsProxy<AppRouter>

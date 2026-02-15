@@ -1,12 +1,19 @@
 import type { CacheService } from "@packages/cache";
 
 import type { UserService } from "@packages/database";
-import type * as trpcExpress from "@trpc/server/adapters/express";
+
+// This import breaks builds currently. Recreating myself with express and the TRPCInfo interface
+// import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import type { Request, Response } from "express";
 
 import type { AuthService } from "./modules/auth/auth.service";
 import type { VerifiedUserSession } from "./modules/auth/auth.types";
 
 import type { CookieService } from "./modules/cookie/cookie.service";
+
+interface TRPCInfo {
+  url: URL | null;
+}
 
 export function createContextWrapper(services: {
   authService: AuthService;
@@ -14,30 +21,13 @@ export function createContextWrapper(services: {
   userService: UserService;
   cookieService: CookieService;
 }) {
-  return async (opts: trpcExpress.CreateExpressContextOptions) => {
-    const { authService, cacheService, userService, cookieService } = services;
-    const context = await createContext({
-      ...opts,
-      services: { authService, cacheService, cookieService, userService },
-    });
+  return async (opts: { req: Request; res: Response; info: TRPCInfo }) => {
+    // return async (opts: CreateExpressContextOptions) => {
     return {
-      ...context,
-      services: { authService, cacheService, cookieService, userService },
+      ...opts,
+      services,
     };
   };
-}
-
-type ContextOptions = trpcExpress.CreateExpressContextOptions & {
-  services: {
-    authService: AuthService;
-    cacheService: CacheService;
-    cookieService: CookieService;
-    userService: UserService;
-  };
-};
-
-async function createContext({ req, res, info, services }: ContextOptions) {
-  return { req, res, info, services };
 }
 
 export type Context = Awaited<

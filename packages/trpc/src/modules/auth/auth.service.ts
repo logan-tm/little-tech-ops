@@ -29,7 +29,7 @@ export class AuthService {
       );
 
       if (!user || !passwordCorrect) {
-        throw new UnauthorizedError("Invalid email or password");
+        throw UnauthorizedError("Invalid email or password");
       }
 
       // Updates cache with refresh token
@@ -42,8 +42,7 @@ export class AuthService {
       // Set the cookies for the client
       this.cookieService.setAccessToken(ctx.req, ctx.res, accessToken);
       this.cookieService.setRefreshToken(ctx.req, ctx.res, refreshToken);
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Login error:", (error as Error).message);
       throw error;
     }
@@ -62,27 +61,27 @@ export class AuthService {
         ctx.res,
       );
       if (!refreshToken) {
-        throw new UnauthorizedError("Refresh token required");
+        throw UnauthorizedError("Refresh token required");
       }
 
       const { verified, payload } =
         this.cacheService.verifyRefreshToken(refreshToken);
       if (!verified || !payload?.sessionId) {
-        throw new UnauthorizedError("Invalid refresh token");
+        throw UnauthorizedError("Invalid refresh token");
       }
 
       const tokenData = await this.cacheService.getRefreshToken(
         payload.sessionId,
       );
       if (!tokenData) {
-        throw new UnauthorizedError("Token revoked or expired");
+        throw UnauthorizedError("Token revoked or expired");
       }
 
       const user = await this.userService.getUserById(
         Number.parseInt(tokenData.userId),
       );
       if (!user) {
-        throw new UnauthorizedError("Invalid refresh token");
+        throw UnauthorizedError("Invalid refresh token");
       }
 
       await this.cacheService.deleteRefreshToken(tokenData.sessionId);
@@ -93,8 +92,7 @@ export class AuthService {
       this.cookieService.setAccessToken(ctx.req, ctx.res, tokens.accessToken);
       this.cookieService.setRefreshToken(ctx.req, ctx.res, tokens.refreshToken);
       return tokens;
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Refresh error:", (error as Error).message);
       throw error;
     }
@@ -107,8 +105,7 @@ export class AuthService {
       } = ctx;
       await this.cacheService.deleteRefreshToken(id);
       this.cookieService.clearCookies(ctx.req, ctx.res);
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Logout error:", (error as Error).message);
       throw error;
     }
@@ -121,8 +118,7 @@ export class AuthService {
     try {
       await this.cacheService.revokeUserTokens(user.id.toString());
       this.cookieService.clearCookies(ctx.req, ctx.res);
-    }
-    catch (error) {
+    } catch (error) {
       throw new Error(
         `Logout all sessions failed: ${(error as Error).message}`,
       );

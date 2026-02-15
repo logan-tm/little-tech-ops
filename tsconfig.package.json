@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    // Output modern ESM
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    // Target modern JS
+    "target": "ES2022",
+
+    // Essential for type safety
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+
+    // Generate .d.ts files
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    // Output directory
+    "outDir": "${configDir}/dist",
+    "rootDir": "${configDir}/src",
+
+    // Monorepo settings
+    "composite": true,
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["${configDir}/src/**/*.ts"]
+}

@@ -1,15 +1,15 @@
-import type { AppRouter } from '../../backend/src/router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createRouter as createTanStackRouter } from '@tanstack/react-router';
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
-import { createTRPCQueryUtils } from '@trpc/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createRouter as createTanStackRouter } from '@tanstack/react-router'
+import { createTRPCClient, httpBatchLink } from '@trpc/client'
+import { createTRPCQueryUtils } from '@trpc/react-query'
 
-import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
+import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
 
 // Import the generated route tree
-import { routeTree } from './routeTree.gen';
+import { routeTree } from './routeTree.gen'
+import type { AppRouter } from '@packages/trpc'
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient()
 
 const trpcClient = createTRPCClient<AppRouter>({
   links: [
@@ -19,22 +19,22 @@ const trpcClient = createTRPCClient<AppRouter>({
         return fetch(url, {
           ...(options as RequestInit),
           credentials: 'include',
-        });
+        })
       },
     }),
   ],
-});
+})
 
 export const trpc = createTRPCOptionsProxy<AppRouter>({
   client: trpcClient,
   queryClient,
-});
+})
 
 // Useful for invalidations and refetching
 export const trpcUtils = createTRPCQueryUtils({
   queryClient,
   client: trpcClient,
-});
+})
 
 export function createRouter() {
   const router = createTanStackRouter({
@@ -57,16 +57,16 @@ export function createRouter() {
         <QueryClientProvider client={queryClient}>
           {children}
         </QueryClientProvider>
-      );
+      )
     },
-  });
+  })
 
-  return router;
+  return router
 }
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {
   interface Register {
-    router: ReturnType<typeof createRouter>;
+    router: ReturnType<typeof createRouter>
   }
 }

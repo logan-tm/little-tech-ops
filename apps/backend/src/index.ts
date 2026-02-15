@@ -7,7 +7,7 @@ import {
   CookieService,
   createContextWrapper,
 } from "@packages/trpc";
-import * as trpcExpress from "@trpc/server/adapters/express";
+import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import cors from "cors";
 
 import express from "express";
@@ -34,7 +34,7 @@ async function main() {
   app.use(cors({ credentials: true }));
   app.use(
     "/trpc",
-    trpcExpress.createExpressMiddleware({
+    createExpressMiddleware({
       router: appRouter,
       createContext: createContextWrapper({
         authService,

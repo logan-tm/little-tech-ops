@@ -10,9 +10,12 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@packages/database": "*"
+    "@packages/database": "*",
+    "ioredis": "^5.9.3",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "typescript": "^5.9.3"
   }
 }

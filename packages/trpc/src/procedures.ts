@@ -1,7 +1,8 @@
 import type { Permission } from "@packages/rules";
+import { hasAllPermissions } from "@packages/rules";
+
 import type { AuthenticatedContext } from "./context";
 import type { UserSession } from "./modules/auth/auth.types";
-import { hasAllPermissions } from "@packages/rules";
 import { t } from "./root";
 
 export const publicProcedure = t.procedure.use(async ({ ctx, next }) => {
@@ -74,8 +75,7 @@ export const publicProcedure = t.procedure.use(async ({ ctx, next }) => {
           session,
         },
       });
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error refreshing access token:", error);
       return next({
         ctx: {

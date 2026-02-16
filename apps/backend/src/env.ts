@@ -1,5 +1,6 @@
-import { z } from "zod/v3";
 import "dotenv/config";
+
+import { z } from "zod/v3";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production"]),

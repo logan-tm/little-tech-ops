@@ -1,19 +1,31 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
-import { Card } from '@/components/ui/Card';
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { trpc } from '@/router';
+import { Card } from "@/components/ui/Card";
+import { trpc } from "@/router";
 
-export const Route = createFileRoute('/_authenticated/dashboard/users')({
-  loader: ({ context }) => {
-    return context.session;
+export const Route = createFileRoute("/_authenticated/dashboard/users")({
+  beforeLoad: ({ context }) => {
+    // if no permission to view users, don't load the page and go back
+    if (!context.permissions.includes("LIST:users")) {
+      if (document.referrer.includes(window.location.host)) {
+        // If in the same app, just go back to previous page
+        window.history.back();
+      } else {
+        // If coming straight from another source by typing in the url directly,
+        // just redirect to the root of the app
+        throw redirect({
+          to: "/",
+        });
+      }
+    }
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const session = Route.useLoaderData();
-  return <UserList selfId={session.user.id.toString()} />;
+  const context = Route.useRouteContext();
+  return <UserList selfId={context.session.user.id.toString()} />;
 }
 
 function UserCard({
@@ -28,7 +40,7 @@ function UserCard({
       <Card.Header className="italic">{user.id}</Card.Header>
       <Card.Title>
         {user.firstName}
-        {' '}
+        {" "}
         {user.lastName}
       </Card.Title>
       <Card.Description>{user.email}</Card.Description>
@@ -60,12 +72,18 @@ function UserList({ selfId }: { selfId: string }) {
       onSuccess: () => {
         userQuery.refetch();
       },
+      onError(e) {
+        console.error("Error creating user...", e);
+      },
     }),
   );
   const userDeletor = useMutation(
     trpc.users.remove.mutationOptions({
       onSuccess: () => {
         userQuery.refetch();
+      },
+      onError(e) {
+        console.error("Error deleting user...", e);
       },
     }),
   );
@@ -79,7 +97,7 @@ function UserList({ selfId }: { selfId: string }) {
       </p>
       <p>
         Fetching:
-        {isFetching ? 'Yes' : 'No'}
+        {isFetching ? "Yes" : "No"}
       </p>
       {error && (
         <p className="text-red-500">
@@ -94,10 +112,15 @@ function UserList({ selfId }: { selfId: string }) {
             user={user}
             deleteUser={(id: number) => {
               if (id.toString() === selfId) {
-                alert('You don\'t want to delete yourself!');
-              }
-              else {
-                userDeletor.mutate(id);
+                alert("You don't want to delete yourself!");
+              } else {
+                if (
+                  confirm(
+                    `Are you sure you want to delete user with id '${id}'?}`,
+                  )
+                ) {
+                  userDeletor.mutate(id);
+                }
               }
             }}
           />
@@ -107,11 +130,11 @@ function UserList({ selfId }: { selfId: string }) {
       <button
         onClick={() => {
           userCreator.mutate({
-            firstName: 'New',
-            lastName: 'User',
+            firstName: "New",
+            lastName: "User",
             email: `newuser${Date.now()}@example.com`,
-            passwordHash: 'hashedpassword',
-            role: 'user',
+            password: "hashedpassword",
+            role: "technician",
           });
         }}
       >

@@ -1,11 +1,11 @@
-import type { Permission } from '@packages/rules'
-import type { VerifiedUserSession } from '@packages/trpc'
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-import { z } from 'zod/v3'
+import type { Permission } from "@packages/rules";
+import type { VerifiedUserSession } from "@packages/trpc";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { z } from "zod/v3";
 
-export const Route = createFileRoute('/_authenticated')({
+export const Route = createFileRoute("/_authenticated")({
   validateSearch: z.object({
-    redirect: z.string().optional().catch(''),
+    redirect: z.string().optional().catch(""),
   }),
   beforeLoad: ({
     context: { isAuthenticated, session, permissions },
@@ -14,14 +14,14 @@ export const Route = createFileRoute('/_authenticated')({
     // console.log("CHECKING AUTH IN 'AUTHENTICATED'...")
     if (!isAuthenticated || !session || !session.user || !permissions) {
       throw redirect({
-        to: '/login',
+        to: "/login",
         search: { redirect: location.href },
-      })
+      });
     }
     return {
       session: session as VerifiedUserSession,
       permissions,
-    }
+    };
   },
   component: () => <Outlet />,
-})
+});

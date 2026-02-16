@@ -1,7 +1,7 @@
 import { insertUserSchema } from "@packages/database/users";
 import { z } from "zod/v3";
-import { router } from "../../index";
 
+import { router } from "../../index";
 import { permissionedProcedure } from "../../procedures";
 
 export const userRouter = router({

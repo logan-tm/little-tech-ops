@@ -1,11 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { trpc, trpcUtils } from '@/router';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { z } from "zod/v3";
 
-export const Route = createFileRoute('/_public/register')({
+import { trpc, trpcUtils } from "@/router";
+
+export const Route = createFileRoute("/_public/register")({
   component: RegisterComponent,
 });
 
@@ -30,7 +31,7 @@ function RegisterComponent() {
   const registerMutation = useMutation(
     trpc.auth.register.mutationOptions({
       onSuccess: async () => {
-        await trpcUtils.auth.isAuthenticated.refetch();
+        await trpcUtils.auth.getSession.refetch();
         await router.invalidate();
       },
       onError(error) {
@@ -51,26 +52,26 @@ function RegisterComponent() {
         <input
           id="firstName"
           className="border border-black/20"
-          {...register('firstName')}
+          {...register("firstName")}
         />
         <label htmlFor="lastName">Last Name:</label>
         <input
           id="lastName"
           className="border border-black/20"
-          {...register('lastName')}
+          {...register("lastName")}
         />
         <label htmlFor="email">Email:</label>
         <input
           id="email"
           className="border border-black/20"
-          {...register('email')}
+          {...register("email")}
         />
         <label htmlFor="password">Password:</label>
         <input
           id="password"
           className="border border-black/20"
           type="password"
-          {...register('password')}
+          {...register("password")}
         />
         <input type="submit" />
       </div>

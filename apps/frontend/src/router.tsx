@@ -1,40 +1,39 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createRouter as createTanStackRouter } from '@tanstack/react-router'
-import { createTRPCClient, httpBatchLink } from '@trpc/client'
-import { createTRPCQueryUtils } from '@trpc/react-query'
-
-import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
+import type { AppRouter } from "@packages/trpc";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { createTRPCQueryUtils } from "@trpc/react-query";
+import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
 // Import the generated route tree
-import { routeTree } from './routeTree.gen'
-import type { AppRouter } from '@packages/trpc'
+import { routeTree } from "./routeTree.gen";
 
-export const queryClient = new QueryClient()
+export const queryClient = new QueryClient();
 
 const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
-      url: 'http://localhost:4000/trpc',
+      url: "http://localhost:4000/trpc",
       fetch: (url, options) => {
         return fetch(url, {
           ...(options as RequestInit),
-          credentials: 'include',
-        })
+          credentials: "include",
+        });
       },
     }),
   ],
-})
+});
 
 export const trpc = createTRPCOptionsProxy<AppRouter>({
   client: trpcClient,
   queryClient,
-})
+});
 
 // Useful for invalidations and refetching
 export const trpcUtils = createTRPCQueryUtils({
-  queryClient,
   client: trpcClient,
-})
+  queryClient,
+});
 
 export function createRouter() {
   const router = createTanStackRouter({
@@ -57,16 +56,16 @@ export function createRouter() {
         <QueryClientProvider client={queryClient}>
           {children}
         </QueryClientProvider>
-      )
+      );
     },
-  })
+  });
 
-  return router
+  return router;
 }
 
 // Register the router instance for type safety
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
-    router: ReturnType<typeof createRouter>
+    router: ReturnType<typeof createRouter>;
   }
 }

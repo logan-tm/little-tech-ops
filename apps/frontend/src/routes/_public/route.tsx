@@ -4,18 +4,18 @@ import {
   Link,
   Outlet,
   redirect,
-} from '@tanstack/react-router';
-import { z } from 'zod';
+} from "@tanstack/react-router";
+import { z } from "zod";
 
-export const Route = createFileRoute('/_public')({
+export const Route = createFileRoute("/_public")({
   validateSearch: z.object({
-    redirect: z.string().optional().catch(''),
+    redirect: z.string().optional().catch(""),
   }),
   beforeLoad: ({ context: { isAuthenticated }, search }) => {
     try {
       // console.log("CHECKING AUTH IN 'PUBLIC'...")
       if (isAuthenticated) {
-        throw redirect({ to: search.redirect || '/dashboard' });
+        throw redirect({ to: search.redirect || "/dashboard" });
       }
     }
     catch (error) {

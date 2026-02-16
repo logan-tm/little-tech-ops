@@ -1,6 +1,6 @@
-import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { SetOption } from "cookies";
 import Cookies from "cookies";
+import type { Request, Response } from "express";
 
 const defaultCookieOptions: SetOption = {
   httpOnly: true,
@@ -26,19 +26,13 @@ export class CookieService {
     }
   }
 
-  getCookies(
-    req: CreateExpressContextOptions["req"],
-    res: CreateExpressContextOptions["res"],
-  ) {
+  getCookies(req: Request, res: Response) {
     return new Cookies(req, res, {
       secure: this.cookieOptions.secure,
     });
   }
 
-  getCookieValues(
-    req: CreateExpressContextOptions["req"],
-    res: CreateExpressContextOptions["res"],
-  ) {
+  getCookieValues(req: Request, res: Response) {
     const cookies = this.getCookies(req, res);
     return {
       accessToken: cookies.get("accessToken"),
@@ -46,10 +40,7 @@ export class CookieService {
     };
   }
 
-  clearCookies(
-    req: CreateExpressContextOptions["req"],
-    res: CreateExpressContextOptions["res"],
-  ) {
+  clearCookies(req: Request, res: Response) {
     const cookies = this.getCookies(req, res);
     cookies.set("accessToken", "", {
       ...this.cookieOptions,
@@ -59,11 +50,7 @@ export class CookieService {
     });
   }
 
-  setAccessToken(
-    req: CreateExpressContextOptions["req"],
-    res: CreateExpressContextOptions["res"],
-    token: string,
-  ) {
+  setAccessToken(req: Request, res: Response, token: string) {
     const cookies = this.getCookies(req, res);
     cookies.set("accessToken", token, {
       ...this.cookieOptions,
@@ -71,11 +58,7 @@ export class CookieService {
     });
   }
 
-  setRefreshToken(
-    req: CreateExpressContextOptions["req"],
-    res: CreateExpressContextOptions["res"],
-    token: string,
-  ) {
+  setRefreshToken(req: Request, res: Response, token: string) {
     const cookies = this.getCookies(req, res);
     cookies.set("refreshToken", token, {
       ...this.cookieOptions,

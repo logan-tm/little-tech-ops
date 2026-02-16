@@ -1,9 +1,10 @@
 import type { CacheService } from "@packages/cache";
 import type { UserService } from "@packages/database";
-import type { AuthenticatedContext, Context } from "../../context";
-import type { CookieService } from "../cookie/cookie.service";
 import bcrypt from "bcryptjs";
+
+import type { AuthenticatedContext, Context } from "../../context";
 import { UnauthorizedError } from "../../lib/errors";
+import type { CookieService } from "../cookie/cookie.service";
 
 function getRequestMetadataForToken(req: AuthenticatedContext["req"]) {
   const userAgent = req.headers["user-agent"];

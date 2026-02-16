@@ -1,12 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { trpc, trpcUtils } from '@/router';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { z } from "zod/v3";
+
+import { trpc, trpcUtils } from "@/router";
 // import { useAuth } from '@/contexts/AuthContext'
 
-export const Route = createFileRoute('/_public/login')({
+export const Route = createFileRoute("/_public/login")({
   component: LoginComponent,
 });
 
@@ -14,10 +15,8 @@ const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
 });
-// type FormData = z.infer<typeof loginSchema>
 
 function LoginComponent() {
-  // const auth = useAuth()
   const router = useRouter();
   const {
     register,
@@ -29,7 +28,7 @@ function LoginComponent() {
   const loginMutation = useMutation(
     trpc.auth.login.mutationOptions({
       onSuccess: async () => {
-        await trpcUtils.auth.isAuthenticated.refetch();
+        await trpcUtils.auth.getSession.refetch();
         await router.invalidate();
       },
       onError(error) {
@@ -48,14 +47,14 @@ function LoginComponent() {
         <input
           id="email"
           className="border border-black/20"
-          {...register('email')}
+          {...register("email")}
         />
         <label htmlFor="password">Password:</label>
         <input
           id="password"
           className="border border-black/20"
           type="password"
-          {...register('password')}
+          {...register("password")}
         />
         <input type="submit" />
       </div>

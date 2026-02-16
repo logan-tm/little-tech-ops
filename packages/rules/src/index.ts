@@ -2,8 +2,9 @@
 // https://github.com/ArjanCodes/examples/blob/main/2026/spec
 
 import type { User } from "@packages/database/users";
-import type { Permission } from "./permissions";
+
 import { definePredicate } from "./lib/predicate";
+import type { Permission } from "./permissions";
 import { getPermissionsByRole } from "./permissions";
 
 // We can build some pretty elaborate rules with this system, but for now

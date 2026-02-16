@@ -1,19 +1,23 @@
-import { createFileRoute } from '@tanstack/react-router';
-import CodeBlock from '@/components/CodeBlock';
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/_authenticated/dashboard/')({
+import CodeBlock from "@/components/CodeBlock";
+
+export const Route = createFileRoute("/_authenticated/dashboard/")({
   loader: ({ context }) => {
-    return context.session;
+    return { session: context.session, permissions: context.permissions };
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const session = Route.useLoaderData();
+  const { session, permissions } = Route.useLoaderData();
 
   return (
     <div>
-      <CodeBlock code={JSON.stringify(session, null, 2)} language="JSON" />
+      <CodeBlock
+        code={JSON.stringify({ ...session, permissions }, null, 2)}
+        language="JSON"
+      />
     </div>
   );
 }

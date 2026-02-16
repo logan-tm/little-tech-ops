@@ -1,9 +1,9 @@
 import type { User } from "@packages/database/users";
 import type { Redis } from "ioredis";
+import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 
 import type { JWTPayload, JWTVerifyResult, RefreshTokenData } from "./types";
-import { randomUUID } from "node:crypto";
-import jwt from "jsonwebtoken";
 
 export class CacheService {
   constructor(

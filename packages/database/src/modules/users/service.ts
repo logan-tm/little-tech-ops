@@ -1,9 +1,10 @@
-import type { DBType } from "../../root";
-import type { InsertUserInput, SelectUnsafeUserOutput, UpdateUserInput, User } from "./types";
-
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
+
+import type { DBType } from "../../root";
+
 import { usersTable } from "./schema";
+import type { InsertUserInput, SelectUnsafeUserOutput, UpdateUserInput, User } from "./types";
 
 function getSafeUser(user: SelectUnsafeUserOutput): User {
   // Remove any unsafe records from the user

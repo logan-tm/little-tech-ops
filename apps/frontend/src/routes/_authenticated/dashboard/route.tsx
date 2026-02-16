@@ -4,27 +4,28 @@
  * It also handles the logout functionality.
  */
 
-import { useMutation } from '@tanstack/react-query';
-
+import { useMutation } from "@tanstack/react-query";
 import {
   createFileRoute,
   Link,
   Outlet,
   useRouter,
-} from '@tanstack/react-router';
-import { trpc, trpcUtils } from '@/router';
+} from "@tanstack/react-router";
 
-export const Route = createFileRoute('/_authenticated/dashboard')({
+import { trpc, trpcUtils } from "@/router";
+
+export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardLayout,
 });
 
 function DashboardLayout() {
   const router = useRouter();
+  const context = Route.useRouteContext();
   const logoutMutation = useMutation(
     trpc.auth.logout.mutationOptions({
       onSuccess: async () => {
-        await trpcUtils.auth.isAuthenticated.refetch();
-        await router.navigate({ to: '/login' });
+        await trpcUtils.auth.getSession.refetch();
+        await router.navigate({ to: "/login" });
       },
       onError(error) {
         alert(`Error logging out: ${error.message}`);
@@ -33,7 +34,7 @@ function DashboardLayout() {
   );
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
+    if (window.confirm("Are you sure you want to logout?")) {
       logoutMutation.mutate();
     }
   };
@@ -52,14 +53,16 @@ function DashboardLayout() {
             Home
           </Link>
         </li>
-        <li>
-          <Link
-            to="/dashboard/users"
-            className="hover:underline data-[status='active']:font-semibold"
-          >
-            Users
-          </Link>
-        </li>
+        {context.permissions.includes("LIST:users") && (
+          <li>
+            <Link
+              to="/dashboard/users"
+              className="hover:underline data-[status='active']:font-semibold"
+            >
+              Users
+            </Link>
+          </li>
+        )}
         <li>
           <button
             type="button"

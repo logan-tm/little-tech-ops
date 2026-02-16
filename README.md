@@ -2,12 +2,12 @@
 
 <a id="readme-top"></a>
 
-[![Contributors][contributors-shield]][contributors-url]
+<!-- [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![GNU GPLv3][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+[![LinkedIn][linkedin-shield]][linkedin-url] -->
 
 <!-- PROJECT LOGO -->
 <br />
@@ -103,13 +103,15 @@ To get a local copy up and running follow these simple example steps. -->
    ```sh
    git clone https://github.com/logan-tm/little-tech-ops.git && cd little-tech-ops
    ```
-2. Install NPM packages
+2. From the root of the project, install NPM packages and build packages
    ```sh
    node --version && npm install --include=dev && npm install --include=dev --workspaces
+   npm run build:packages
    ```
-3. Stand up backend services
+3. Stand up backend services and development apps
    ```sh
-   docker compose up
+   docker compose up -d
+   npm run dev
    ```
 4. \[Optional\] Open the following urls to view live data:
    ```sh

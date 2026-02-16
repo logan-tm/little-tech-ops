@@ -1,9 +1,11 @@
 import type { Permission } from "@packages/rules";
-import type { UserSession } from "./auth.types";
 import { getPermissionsByRole } from "@packages/rules";
 import { z } from "zod/v3";
+
 import { router } from "../../index";
 import { authenticatedProcedure, publicProcedure } from "../../procedures";
+
+import type { UserSession } from "./auth.types";
 
 export const authRouter = router({
   login: publicProcedure
@@ -43,10 +45,9 @@ export const authRouter = router({
       permissions: Array<Permission> | null;
     }> => {
       const { session } = ctx;
-      const isAuthenticated
-        = session !== undefined && session.verified && !session.expired;
-      const permissions
-        = isAuthenticated && !!session.user
+      const isAuthenticated = !!session && session.verified && !session.expired;
+      const permissions =
+        isAuthenticated && !!session.user
           ? getPermissionsByRole(session.user.role)
           : null;
       return {

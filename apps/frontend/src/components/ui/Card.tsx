@@ -1,16 +1,16 @@
 const VARIANTS = {
-  default: 'border-gray-200',
-  outlined: 'border-gray-300',
-  elevated: 'border-transparent',
+  default: "border-gray-200",
+  outlined: "border-gray-300",
+  elevated: "border-transparent",
 } as const;
 
 type Variant = keyof typeof VARIANTS;
 
 const PADDINGS = {
-  none: 'p-0',
-  sm: 'p-3',
-  md: 'p-6',
-  lg: 'p-8',
+  none: "p-0",
+  sm: "p-3",
+  md: "p-6",
+  lg: "p-8",
 } as const;
 
 type Padding = keyof typeof PADDINGS;
@@ -25,19 +25,19 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Card({
   children,
-  variant = 'default',
-  padding = 'md',
+  variant = "default",
+  padding = "md",
   shadow = true,
   hover = false,
-  className = '',
+  className = "",
   ...props
 }: CardProps) {
-  const baseStyles = 'bg-white rounded-lg border';
+  const baseStyles = "bg-white rounded-lg border";
 
-  const shadowStyles = shadow ? 'shadow-md' : '';
+  const shadowStyles = shadow ? "shadow-md" : "";
   const hoverStyles = hover
-    ? 'transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5'
-    : '';
+    ? "transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+    : "";
 
   return (
     <div
@@ -64,7 +64,7 @@ interface CardSubcomponentPropsFromP extends React.HTMLAttributes<HTMLParagraphE
 
 Card.Header = ({
   children,
-  className = '',
+  className = "",
   ...props
 }: CardSubcomponentPropsFromDiv) => (
   <div className={`mb-4 ${className}`} {...props}>
@@ -74,7 +74,7 @@ Card.Header = ({
 
 Card.Title = ({
   children,
-  className = '',
+  className = "",
   ...props
 }: CardSubcomponentPropsFromH3) => (
   <h3 className={`text-xl font-semibold text-gray-900 ${className}`} {...props}>
@@ -84,7 +84,7 @@ Card.Title = ({
 
 Card.Description = ({
   children,
-  className = '',
+  className = "",
   ...props
 }: CardSubcomponentPropsFromP) => (
   <p className={`text-sm text-gray-600 mt-1 ${className}`} {...props}>
@@ -94,7 +94,7 @@ Card.Description = ({
 
 Card.Content = ({
   children,
-  className = '',
+  className = "",
   ...props
 }: CardSubcomponentPropsFromDiv) => (
   <div className={`text-gray-700 ${className}`} {...props}>
@@ -104,7 +104,7 @@ Card.Content = ({
 
 Card.Footer = ({
   children,
-  className = '',
+  className = "",
   ...props
 }: CardSubcomponentPropsFromDiv) => (
   <div className={`mt-4 flex gap-2 ${className}`} {...props}>

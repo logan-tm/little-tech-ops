@@ -1,6 +1,5 @@
 import { createCacheService } from "@packages/cache";
-
-import { createDatabaseServices } from "@packages/database";
+import { createPgDatabaseServices } from "@packages/database";
 import {
   appRouter,
   AuthService,
@@ -9,8 +8,8 @@ import {
 } from "@packages/trpc";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import cors from "cors";
-
 import express from "express";
+
 import { env } from "./env";
 // import "dotenv/config";
 
@@ -24,7 +23,7 @@ async function main() {
     refreshTokenSecret: env.JWT_REFRESH_TOKEN_SECRET,
   });
 
-  const { userService } = await createDatabaseServices(env.DATABASE_URL);
+  const { userService } = await createPgDatabaseServices(env.DATABASE_URL);
 
   const cookieService = new CookieService();
 

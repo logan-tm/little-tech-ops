@@ -9,6 +9,8 @@ import { getPermissionsByRole } from "./permissions";
 
 // We can build some pretty elaborate rules with this system, but for now
 // we'll just check if a user has a specific permission.
+
+// Is it overkill? Yes.
 const defineUserPredicate = definePredicate<User>();
 
 export const hasPermission = defineUserPredicate(
@@ -20,7 +22,7 @@ export const hasPermission = defineUserPredicate(
 export const hasAllPermissions = defineUserPredicate(
   (user: User, permissions: Permission[]) => {
     const userPermissions = getPermissionsByRole(user.role);
-    return permissions.every(permission =>
+    return permissions.every((permission) =>
       userPermissions.includes(permission),
     );
   },
@@ -34,4 +36,4 @@ export const rules = {
 };
 
 // Re-export types and functions for easier access
-export { getPermissionsByRole, type Permission };
+export * from "./permissions";

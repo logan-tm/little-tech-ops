@@ -16,6 +16,7 @@ export default antfu(
       "unicorn/throw-new-error": "off",
       "jsonc/sort-keys": "off",
       "style/arrow-parens": "off",
+      "style/jsx-one-expression-per-line": "off",
       "perfectionist/sort-imports": [
         "error",
         {

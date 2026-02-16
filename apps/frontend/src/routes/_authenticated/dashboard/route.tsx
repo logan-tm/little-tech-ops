@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardLayout() {
   const router = useRouter();
-  const context = Route.useRouteContext();
+  const { permissions, session } = Route.useRouteContext();
   const logoutMutation = useMutation(
     trpc.auth.logout.mutationOptions({
       onSuccess: async () => {
@@ -41,7 +41,10 @@ function DashboardLayout() {
 
   return (
     <div className="h-full p-2">
-      <h1>Authenticated Route</h1>
+      <h1>
+        Authenticated Route -{" "}
+        <span className="font-bold">{session.user.role.toUpperCase()}</span>
+      </h1>
       <p>This route's content is only visible to authenticated users.</p>
       <ul className="flex gap-2 py-2">
         <li>
@@ -53,7 +56,7 @@ function DashboardLayout() {
             Home
           </Link>
         </li>
-        {context.permissions.includes("LIST:users") && (
+        {permissions.includes("LIST:users") && (
           <li>
             <Link
               to="/dashboard/users"
@@ -64,9 +67,17 @@ function DashboardLayout() {
           </li>
         )}
         <li>
+          <Link
+            to="/dashboard/about"
+            className="hover:underline data-[status='active']:font-semibold"
+          >
+            About
+          </Link>
+        </li>
+        <li>
           <button
             type="button"
-            className="hover:underline"
+            className="hover:underline hover:cursor-pointer"
             onClick={handleLogout}
           >
             Logout

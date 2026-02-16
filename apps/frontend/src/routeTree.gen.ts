@@ -17,6 +17,7 @@ import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authenticated/dashboard/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedDashboardUsersRouteImport } from './routes/_authenticated/dashboard/users'
+import { Route as AuthenticatedDashboardAboutRouteImport } from './routes/_authenticated/dashboard/about'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
   id: '/_public',
@@ -59,12 +60,19 @@ const AuthenticatedDashboardUsersRoute =
     path: '/users',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
+const AuthenticatedDashboardAboutRoute =
+  AuthenticatedDashboardAboutRouteImport.update({
+    id: '/about',
+    path: '/about',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/login': typeof PublicLoginRoute
   '/register': typeof PublicRegisterRoute
+  '/dashboard/about': typeof AuthenticatedDashboardAboutRoute
   '/dashboard/users': typeof AuthenticatedDashboardUsersRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
@@ -72,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
   '/login': typeof PublicLoginRoute
   '/register': typeof PublicRegisterRoute
+  '/dashboard/about': typeof AuthenticatedDashboardAboutRoute
   '/dashboard/users': typeof AuthenticatedDashboardUsersRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
@@ -83,6 +92,7 @@ export interface FileRoutesById {
   '/_public/login': typeof PublicLoginRoute
   '/_public/register': typeof PublicRegisterRoute
   '/_public/': typeof PublicIndexRoute
+  '/_authenticated/dashboard/about': typeof AuthenticatedDashboardAboutRoute
   '/_authenticated/dashboard/users': typeof AuthenticatedDashboardUsersRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
@@ -93,10 +103,17 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/register'
+    | '/dashboard/about'
     | '/dashboard/users'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/dashboard/users' | '/dashboard'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/dashboard/about'
+    | '/dashboard/users'
+    | '/dashboard'
   id:
     | '__root__'
     | '/_authenticated'
@@ -105,6 +122,7 @@ export interface FileRouteTypes {
     | '/_public/login'
     | '/_public/register'
     | '/_public/'
+    | '/_authenticated/dashboard/about'
     | '/_authenticated/dashboard/users'
     | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
@@ -172,16 +190,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardUsersRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
+    '/_authenticated/dashboard/about': {
+      id: '/_authenticated/dashboard/about'
+      path: '/about'
+      fullPath: '/dashboard/about'
+      preLoaderRoute: typeof AuthenticatedDashboardAboutRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
   }
 }
 
 interface AuthenticatedDashboardRouteRouteChildren {
+  AuthenticatedDashboardAboutRoute: typeof AuthenticatedDashboardAboutRoute
   AuthenticatedDashboardUsersRoute: typeof AuthenticatedDashboardUsersRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
 const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRouteChildren =
   {
+    AuthenticatedDashboardAboutRoute: AuthenticatedDashboardAboutRoute,
     AuthenticatedDashboardUsersRoute: AuthenticatedDashboardUsersRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }

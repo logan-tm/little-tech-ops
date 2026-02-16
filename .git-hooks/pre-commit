@@ -1,1 +1,20 @@
-npm run lint:all
+#!/bin/bash
+
+# Define your linter command
+# Example: eslint, pylint, etc.
+LINTER_COMMAND="npm run lint:all"
+
+echo "Running linter... Please wait."
+
+# Run the linter, redirecting both standard output (1) and standard error (2) to /dev/null
+# This suppresses the linter's own output
+if ! $LINTER_COMMAND > /dev/null 2>&1; then
+    echo "----------------------------------------------------"
+    echo "Linter failed! Please fix the issues before committing."
+    echo "To see the details, run '$LINTER_COMMAND' manually."
+    echo "----------------------------------------------------"
+    exit 1 # Exit with a non-zero status to abort the commit
+else
+    echo "Linter passed successfully. Committing code."
+    exit 0 # Exit with zero status to allow the commit to proceed
+fi

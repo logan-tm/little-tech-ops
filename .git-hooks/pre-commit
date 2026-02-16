@@ -20,10 +20,15 @@ print_info () {
   printf "\r  [\033[00;34mINFO\033[0m] %s\n" "$1"
 }
 
+print_empty_line () {
+  echo ""
+}
+
 run () {
   if ! $2 > /dev/null 2>&1; then
     clear_last_line
     print_fail "$1 failed! To see the details, run '$2' manually."
+    print_empty_line
     exit 1
 else
     clear_last_line
@@ -38,3 +43,5 @@ print_info "Running pre-commit checks..."
 # ===== LINT STAGE =====
 print_processing "Running linter... Please wait."
 run "Linter" "npm run lint:all"
+
+print_empty_line

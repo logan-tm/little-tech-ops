@@ -24,24 +24,26 @@ print_empty_line () {
   echo ""
 }
 
-run () {
-  if ! $2 > /dev/null 2>&1; then
+run_linter () {
+  print_processing "Running linter... Please wait."
+  LINT_COMMAND="npm run lint:all"
+  if ! $LINT_COMMAND > /dev/null 2>&1; then
     clear_last_line
-    print_fail "$1 failed! To see the details, run '$2' manually."
+    print_fail "Linter failed! To see the details, run '$LINT_COMMAND' manually."
     print_empty_line
     exit 1
-else
+  else
     clear_last_line
-    print_success "$1 passed successfully."
-    exit 0
-fi
+    print_success "Linter passed successfully."
+  fi
 }
 
 echo ""
 print_info "Running pre-commit checks..."
 
-# ===== LINT STAGE =====
-print_processing "Running linter... Please wait."
-run "Linter" "npm run lint:all"
+# ===== STAGES =====
+run_linter
+# ==================
 
 print_empty_line
+exit 0

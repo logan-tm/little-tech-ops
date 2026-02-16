@@ -16,27 +16,25 @@ print_fail () {
   printf "\r\033[2K  [\033[0;31mFAIL\033[0m] %s\n" "$1"
 }
 
-# Define your linter command
-# Example: eslint, pylint, etc.
-LINTER_COMMAND="npm run lint:all"
+print_info () {
+  printf "\r  [\033[00;34mINFO\033[0m] %s\n" "$1"
+}
 
-echo ""
-print_processing "Running linter... Please wait."
-
-# Run the linter, redirecting both standard output (1) and standard error (2) to /dev/null
-# This suppresses the linter's own output
-if ! $LINTER_COMMAND > /dev/null 2>&1; then
+run () {
+  if ! $2 > /dev/null 2>&1; then
     clear_last_line
-    # echo "----------------------------------------------------"
-    # echo "Linter failed! Please fix the issues before committing."
-    # echo "To see the details, run '$LINTER_COMMAND' manually."
-    # echo "----------------------------------------------------"
-    print_fail "Linter failed! To see the details, run '$LINTER_COMMAND' manually."
-    echo ""
-    exit 1 # Exit with a non-zero status to abort the commit
+    print_fail "$1 failed! To see the details, run '$2' manually."
+    exit 1
 else
     clear_last_line
-    print_success "Linter passed successfully."
-    echo ""
-    exit 0 # Exit with zero status to allow the commit to proceed
+    print_success "$1 passed successfully."
+    exit 0
 fi
+}
+
+echo ""
+print_info "Running pre-commit checks..."
+
+# ===== LINT STAGE =====
+print_processing "Running linter... Please wait."
+run "Linter" "npm run lint:all"

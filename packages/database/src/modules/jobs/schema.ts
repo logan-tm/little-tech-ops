@@ -1,9 +1,4 @@
-import {
-  bigint,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { bigint, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { usersTable } from "../users/schema";
@@ -15,7 +10,7 @@ export const jobsTable = pgTable("jobs_table", {
     .notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  status: text({ enum: ["pending", "in_progress", "completed"] })
+  status: text({ enum: ["pending", "in_progress", "completed", "cancelled"] })
     .default("pending")
     .notNull(),
   assignedTo: bigint("assignedTo", { mode: "number" }).references(

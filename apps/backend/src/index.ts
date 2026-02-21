@@ -23,7 +23,8 @@ async function main() {
     refreshTokenSecret: env.JWT_REFRESH_TOKEN_SECRET,
   });
 
-  const { userService } = await createPgDatabaseServices(env.DATABASE_URL);
+  const { userService, jobsService, vehiclesService } =
+    await createPgDatabaseServices(env.DATABASE_URL);
 
   const cookieService = new CookieService();
 
@@ -40,6 +41,8 @@ async function main() {
         cookieService,
         cacheService,
         userService,
+        jobsService,
+        vehiclesService,
       }),
     }),
   );

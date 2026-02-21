@@ -44,7 +44,7 @@ const PERMISSIONS_MAP: { [K in Permission]: Array<User["role"]> } = {
   "DELETE:job": ["manager"],
   "UPDATE:job": ["manager"],
   "ASSIGN:job": ["manager"],
-  "WORK:job": ["technician"],
+  "WORK:job": ["technician", "manager"],
 };
 
 // Credit to reddit where it's due

@@ -1,5 +1,8 @@
-import { insertVehicleSchema } from "@packages/database/vehicles";
-import { z } from "zod/v3";
+import {
+  insertVehicleSchema,
+  updateVehicleSchema,
+} from "@packages/database/vehicles";
+import * as z from "zod/v4-mini";
 
 import { router } from "../../index";
 import { permissionedProcedure } from "../../procedures";
@@ -33,19 +36,7 @@ export const vehicleRouter = router({
         await ctx.services.vehiclesService.deleteVehicle(input),
     ),
   update: permissionedProcedure(["UPDATE:vehicle"])
-    .input(
-      z.object({
-        id: z.number(),
-        make: z.string().optional(),
-        model: z.string().optional(),
-        year: z.number().optional(),
-        vin: z.string().optional(),
-        status: z
-          .enum(["available", "in_use", "maintenance"])
-          .optional(),
-        checkedOutBy: z.number().nullable().optional(),
-      }),
-    )
+    .input(updateVehicleSchema.extend({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
       return await ctx.services.vehiclesService.updateVehicle(id, updateData);

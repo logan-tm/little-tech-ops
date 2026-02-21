@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { z } from "zod/v3";
+import { z } from "zod/v4-mini";
 
 import { trpc, trpcUtils } from "@/router";
 // import { useAuth } from '@/contexts/AuthContext'
@@ -12,8 +12,8 @@ export const Route = createFileRoute("/_public/login")({
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.email(),
+  password: z.string().check(z.minLength(5)),
 });
 
 function LoginComponent() {
@@ -40,7 +40,7 @@ function LoginComponent() {
   return (
     <form
       className="py-4"
-      onSubmit={handleSubmit(data => loginMutation.mutate(data))}
+      onSubmit={handleSubmit((data) => loginMutation.mutate(data))}
     >
       <div className="flex gap-2">
         <label htmlFor="email">Email:</label>

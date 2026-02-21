@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { z } from "zod/v3";
+import * as z from "zod/v4-mini";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production"]),
@@ -8,7 +8,7 @@ const envSchema = z.object({
   REDIS_URL: z.string(),
   JWT_ACCESS_TOKEN_SECRET: z.string(),
   JWT_REFRESH_TOKEN_SECRET: z.string(),
-  PORT: z.coerce.number().default(4000),
+  PORT: z._default(z.coerce.number(), 4000),
 });
 
 export const env = envSchema.parse(process.env);

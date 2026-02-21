@@ -1,5 +1,5 @@
-import { insertUserSchema } from "@packages/database/users";
-import { z } from "zod/v3";
+import { insertUserSchema, updateUserSchema } from "@packages/database/users";
+import * as z from "zod/v4-mini";
 
 import { router } from "../../index";
 import { permissionedProcedure } from "../../procedures";
@@ -28,13 +28,8 @@ export const userRouter = router({
     ),
   update: permissionedProcedure(["UPDATE:user"])
     .input(
-      z.object({
+      updateUserSchema.extend({
         id: z.number(),
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
-        email: z.string().email().optional(),
-        passwordHash: z.string().optional(),
-        role: z.enum(["admin", "manager", "technician"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

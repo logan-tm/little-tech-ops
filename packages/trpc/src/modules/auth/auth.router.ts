@@ -1,6 +1,6 @@
 import type { Permission } from "@packages/rules";
 import { getPermissionsByRole } from "@packages/rules";
-import { z } from "zod/v3";
+import { z } from "zod/v4-mini";
 
 import { router } from "../../index";
 import { authenticatedProcedure, publicProcedure } from "../../procedures";
@@ -11,8 +11,8 @@ export const authRouter = router({
   login: publicProcedure
     .input(
       z.object({
-        email: z.string().email(),
-        password: z.string().min(6),
+        email: z.email(),
+        password: z.string().check(z.minLength(6)),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -27,10 +27,10 @@ export const authRouter = router({
   register: publicProcedure
     .input(
       z.object({
-        firstName: z.string().min(1),
-        lastName: z.string().min(1),
-        email: z.string().email(),
-        password: z.string().min(6),
+        firstName: z.string().check(z.minLength(1)),
+        lastName: z.string().check(z.minLength(1)),
+        email: z.email(),
+        password: z.string().check(z.minLength(6)),
       }),
     )
     .mutation(async ({ input, ctx }) => {

@@ -1,5 +1,5 @@
-import { insertJobSchema } from "@packages/database/jobs";
-import { z } from "zod/v3";
+import { insertJobSchema, updateJobSchema } from "@packages/database/jobs";
+import * as z from "zod/v4-mini";
 
 import { router } from "../../index";
 import { permissionedProcedure } from "../../procedures";
@@ -30,13 +30,8 @@ export const jobRouter = router({
     ),
   update: permissionedProcedure(["UPDATE:job"])
     .input(
-      z.object({
+      updateJobSchema.extend({
         id: z.number(),
-        title: z.string().optional(),
-        description: z.string().optional(),
-        status: z.enum(["pending", "in_progress", "completed"]).optional(),
-        assignedTo: z.number().nullable().optional(),
-        createdBy: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

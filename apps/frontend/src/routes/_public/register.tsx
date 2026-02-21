@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { z } from "zod/v3";
+import { z } from "zod/v4-mini";
 
 import { trpc, trpcUtils } from "@/router";
 
@@ -11,10 +11,10 @@ export const Route = createFileRoute("/_public/register")({
 });
 
 const registerSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(6),
+  firstName: z.string().check(z.minLength(1)),
+  lastName: z.string().check(z.minLength(1)),
+  email: z.email(),
+  password: z.string().check(z.minLength(6)),
 });
 type FormData = z.infer<typeof registerSchema>;
 

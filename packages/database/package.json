@@ -12,6 +12,16 @@
       "import": "./dist/modules/users/index.js",
       "require": "./dist/modules/users/index.js"
     },
+    "./jobs": {
+      "types": "./dist/modules/jobs/index.d.ts",
+      "import": "./dist/modules/jobs/index.js",
+      "require": "./dist/modules/jobs/index.js"
+    },
+    "./vehicles": {
+      "types": "./dist/modules/vehicles/index.d.ts",
+      "import": "./dist/modules/vehicles/index.js",
+      "require": "./dist/modules/vehicles/index.js"
+    },
     "./*": "./dist/*"
   },
   "main": "./dist/index.js",

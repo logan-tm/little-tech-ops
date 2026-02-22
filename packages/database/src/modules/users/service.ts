@@ -4,7 +4,12 @@ import { eq } from "drizzle-orm";
 import type { DBType } from "../../root";
 
 import { usersTable } from "./schema";
-import type { InsertUserInput, SelectUnsafeUserOutput, UpdateUserInput, User } from "./types";
+import type {
+  InsertUserInput,
+  SelectUnsafeUserOutput,
+  UpdateUserInput,
+  User,
+} from "./types";
 
 function getSafeUser(user: SelectUnsafeUserOutput): User {
   // Remove any unsafe records from the user
@@ -48,7 +53,7 @@ export class UserService {
   }
 
   async listUsers() {
-    return (await this.db.select().from(usersTable)).map(user =>
+    return (await this.db.select().from(usersTable)).map((user) =>
       getSafeUser(user),
     );
   }
@@ -82,7 +87,8 @@ export class UserService {
       .from(usersTable)
       .where(eq(usersTable.email, email))
       .limit(1);
-    if (!user || bcrypt.compareSync(password, user.password)) {
+
+    if (!user || !bcrypt.compareSync(password, user.password)) {
       return {
         passwordCorrect: false,
         user: null,

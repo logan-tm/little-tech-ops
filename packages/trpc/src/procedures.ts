@@ -75,8 +75,9 @@ export const publicProcedure = t.procedure.use(async ({ ctx, next }) => {
           session,
         },
       });
-    } catch (error) {
-      console.error("Error refreshing access token:", error);
+    } catch {
+      // console.error("Error refreshing access token:", error);
+      services.cookieService.clearCookies(req, res);
       return next({
         ctx: {
           ...ctx,

@@ -1,6 +1,5 @@
 import type { CacheService } from "@packages/cache";
 import type { UserService } from "@packages/database";
-import bcrypt from "bcryptjs";
 
 import type { AuthenticatedContext, Context } from "../../context";
 import { UnauthorizedError } from "../../lib/errors";
@@ -143,13 +142,11 @@ export class AuthService {
       throw new Error("User with this email already exists.");
     }
 
-    const passwordHash = bcrypt.hashSync(password, 10);
-
     const user = await this.userService.createUser({
       firstName,
       lastName,
       email,
-      password: passwordHash,
+      password,
       role: "technician",
     });
 

@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
     "db:push": "npx drizzle-kit push",
-    "dev:db:seed": "npx tsx src/db/seed.ts",
+    "dev:db:seed": "npx tsx src/scripts/seed.ts",
     "dev:db:reset": "rm local.db && npm run db:push && npm run dev:db:seed",
     "build": "tsc -p tsconfig.json"
   },
@@ -29,6 +29,7 @@
     "@faker-js/faker": "^10.1.0",
     "@types/cors": "^2.8.19",
     "@types/faker": "^6.6.8",
+    "bcrypt": "^6.0.0",
     "drizzle-kit": "^0.31.8",
     "nodemon": "^3.1.11",
     "tsx": "^4.21.0"

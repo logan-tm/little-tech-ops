@@ -37,7 +37,11 @@
     "lint:frontend:fix": "eslint --fix 'apps/frontend/src/**/*.{ts,tsx}'",
     "lint:packages": "eslint 'packages/**/*.ts'",
     "lint:packages:fix": "eslint --fix 'packages/**/*.ts'",
+    "lint:staged": "lint-staged",
     "prepare": "git config core.hooksPath .git-hooks"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "eslint --fix"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.4.3",
@@ -45,6 +49,7 @@
     "concurrently": "^9.2.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.0",
+    "lint-staged": "^16.2.7",
     "nx": "22.3.3"
   }
 }

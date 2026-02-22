@@ -25,16 +25,11 @@ print_empty_line () {
 }
 
 run_linter () {
-  print_processing "Running linter... Please wait."
-  LINT_COMMAND="npm run lint:all"
-  if ! $LINT_COMMAND > /dev/null 2>&1; then
-    clear_last_line
+  LINT_COMMAND="npm run lint:staged"
+  if ! $LINT_COMMAND; then # don't trash output, it's nice to see
     print_fail "Linter failed! To see the details, run '$LINT_COMMAND' manually."
     print_empty_line
     exit 1
-  else
-    clear_last_line
-    print_success "Linter passed successfully."
   fi
 }
 
@@ -46,4 +41,5 @@ run_linter
 # ==================
 
 print_empty_line
+print_success "Completed pre-commit checks"
 exit 0

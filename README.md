@@ -119,9 +119,9 @@ To get a local copy up and running follow these simple example steps. -->
    http://localhost:8085 (pgweb)
    ```
 
-### Installation (production)
+<!-- ### Installation (production)
 
-TODO
+TODO -->
 
 <!-- 1. Clone the repo
    ```sh
@@ -141,19 +141,19 @@ TODO
    git remote -v # confirm the changes
    ``` -->
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<!-- <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 <!-- USAGE EXAMPLES -->
 
-## Usage
+<!-- ## Usage -->
 
 <!-- Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
-TODO
+<!-- TODO
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 <!-- ROADMAP -->
 
@@ -161,7 +161,7 @@ TODO
 
 - [x] Implement authentication flow with JWT tokens
 - [x] Implement permissions structure with roles
-- [ ] Implement jobs and vehicles
+- [x] Implement jobs and vehicles
 - [ ] Implement role-based actions:
   - [ ] Users can "complete" jobs
   - [ ] Users can checkout vehicles

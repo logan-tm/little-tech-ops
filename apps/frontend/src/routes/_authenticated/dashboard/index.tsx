@@ -1,6 +1,5 @@
+// import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-
-import AdminDashboard from "@/components/AdminDashboard";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: RouteComponent,
@@ -9,9 +8,5 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 function RouteComponent() {
   const { session } = Route.useRouteContext();
 
-  if (session.user.role === "admin") {
-    return <AdminDashboard />;
-  }
-
-  return <div>Who are you?</div>;
+  return <div>Hello, {session.user.firstName}!</div>;
 }

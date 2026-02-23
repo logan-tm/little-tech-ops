@@ -29,7 +29,7 @@ const PERMISSIONS_MAP: { [K in Permission]: Array<User["role"]> } = {
   "LIST:users": ["manager", "admin"],
   "CREATE:user": ["admin"],
   "DELETE:user": ["admin"],
-  "UPDATE:user": ["manager", "admin"],
+  "UPDATE:user": ["admin"],
   //
   "GET:vehicle": ["technician", "manager"],
   "LIST:vehicles": ["technician", "manager"],

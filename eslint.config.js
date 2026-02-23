@@ -9,6 +9,7 @@ export default antfu(
     typescript: true,
     react: true,
     rules: {
+      "antfu/if-newline": "off",
       "node/prefer-global/process": "off",
       "no-console": "off",
       "style/operator-linebreak": "off",
@@ -16,7 +17,10 @@ export default antfu(
       "unicorn/throw-new-error": "off",
       "jsonc/sort-keys": "off",
       "style/arrow-parens": "off",
+      "style/indent": "off",
       "style/jsx-one-expression-per-line": "off",
+      "style/multiline-ternary": "off",
+      "style/jsx-wrap-multilines": "off",
       "perfectionist/sort-imports": [
         "error",
         {

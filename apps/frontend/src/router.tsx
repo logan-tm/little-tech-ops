@@ -4,6 +4,7 @@ import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCQueryUtils } from "@trpc/react-query";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
+import superjson from "superjson";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -20,6 +21,7 @@ const trpcClient = createTRPCClient<AppRouter>({
           credentials: "include",
         });
       },
+      transformer: superjson,
     }),
   ],
 });

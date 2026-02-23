@@ -16,8 +16,13 @@ import { Route as PublicRegisterRouteImport } from './routes/_public/register'
 import { Route as PublicLoginRouteImport } from './routes/_public/login'
 import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authenticated/dashboard/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
-import { Route as AuthenticatedDashboardUsersRouteImport } from './routes/_authenticated/dashboard/users'
 import { Route as AuthenticatedDashboardAboutRouteImport } from './routes/_authenticated/dashboard/about'
+import { Route as AuthenticatedDashboardVehiclesIndexRouteImport } from './routes/_authenticated/dashboard/vehicles/index'
+import { Route as AuthenticatedDashboardUsersIndexRouteImport } from './routes/_authenticated/dashboard/users/index'
+import { Route as AuthenticatedDashboardJobsIndexRouteImport } from './routes/_authenticated/dashboard/jobs/index'
+import { Route as AuthenticatedDashboardVehiclesVehicleIdRouteImport } from './routes/_authenticated/dashboard/vehicles/$vehicleId'
+import { Route as AuthenticatedDashboardUsersUserIdRouteImport } from './routes/_authenticated/dashboard/users/$userId'
+import { Route as AuthenticatedDashboardJobsJobIdRouteImport } from './routes/_authenticated/dashboard/jobs/$jobId'
 
 const PublicRouteRoute = PublicRouteRouteImport.update({
   id: '/_public',
@@ -54,16 +59,46 @@ const AuthenticatedDashboardIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
-const AuthenticatedDashboardUsersRoute =
-  AuthenticatedDashboardUsersRouteImport.update({
-    id: '/users',
-    path: '/users',
-    getParentRoute: () => AuthenticatedDashboardRouteRoute,
-  } as any)
 const AuthenticatedDashboardAboutRoute =
   AuthenticatedDashboardAboutRouteImport.update({
     id: '/about',
     path: '/about',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedDashboardVehiclesIndexRoute =
+  AuthenticatedDashboardVehiclesIndexRouteImport.update({
+    id: '/vehicles/',
+    path: '/vehicles/',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedDashboardUsersIndexRoute =
+  AuthenticatedDashboardUsersIndexRouteImport.update({
+    id: '/users/',
+    path: '/users/',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedDashboardJobsIndexRoute =
+  AuthenticatedDashboardJobsIndexRouteImport.update({
+    id: '/jobs/',
+    path: '/jobs/',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedDashboardVehiclesVehicleIdRoute =
+  AuthenticatedDashboardVehiclesVehicleIdRouteImport.update({
+    id: '/vehicles/$vehicleId',
+    path: '/vehicles/$vehicleId',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedDashboardUsersUserIdRoute =
+  AuthenticatedDashboardUsersUserIdRouteImport.update({
+    id: '/users/$userId',
+    path: '/users/$userId',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedDashboardJobsJobIdRoute =
+  AuthenticatedDashboardJobsJobIdRouteImport.update({
+    id: '/jobs/$jobId',
+    path: '/jobs/$jobId',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
 
@@ -73,16 +108,26 @@ export interface FileRoutesByFullPath {
   '/login': typeof PublicLoginRoute
   '/register': typeof PublicRegisterRoute
   '/dashboard/about': typeof AuthenticatedDashboardAboutRoute
-  '/dashboard/users': typeof AuthenticatedDashboardUsersRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/jobs/$jobId': typeof AuthenticatedDashboardJobsJobIdRoute
+  '/dashboard/users/$userId': typeof AuthenticatedDashboardUsersUserIdRoute
+  '/dashboard/vehicles/$vehicleId': typeof AuthenticatedDashboardVehiclesVehicleIdRoute
+  '/dashboard/jobs/': typeof AuthenticatedDashboardJobsIndexRoute
+  '/dashboard/users/': typeof AuthenticatedDashboardUsersIndexRoute
+  '/dashboard/vehicles/': typeof AuthenticatedDashboardVehiclesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
   '/login': typeof PublicLoginRoute
   '/register': typeof PublicRegisterRoute
   '/dashboard/about': typeof AuthenticatedDashboardAboutRoute
-  '/dashboard/users': typeof AuthenticatedDashboardUsersRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/jobs/$jobId': typeof AuthenticatedDashboardJobsJobIdRoute
+  '/dashboard/users/$userId': typeof AuthenticatedDashboardUsersUserIdRoute
+  '/dashboard/vehicles/$vehicleId': typeof AuthenticatedDashboardVehiclesVehicleIdRoute
+  '/dashboard/jobs': typeof AuthenticatedDashboardJobsIndexRoute
+  '/dashboard/users': typeof AuthenticatedDashboardUsersIndexRoute
+  '/dashboard/vehicles': typeof AuthenticatedDashboardVehiclesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -93,8 +138,13 @@ export interface FileRoutesById {
   '/_public/register': typeof PublicRegisterRoute
   '/_public/': typeof PublicIndexRoute
   '/_authenticated/dashboard/about': typeof AuthenticatedDashboardAboutRoute
-  '/_authenticated/dashboard/users': typeof AuthenticatedDashboardUsersRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/dashboard/jobs/$jobId': typeof AuthenticatedDashboardJobsJobIdRoute
+  '/_authenticated/dashboard/users/$userId': typeof AuthenticatedDashboardUsersUserIdRoute
+  '/_authenticated/dashboard/vehicles/$vehicleId': typeof AuthenticatedDashboardVehiclesVehicleIdRoute
+  '/_authenticated/dashboard/jobs/': typeof AuthenticatedDashboardJobsIndexRoute
+  '/_authenticated/dashboard/users/': typeof AuthenticatedDashboardUsersIndexRoute
+  '/_authenticated/dashboard/vehicles/': typeof AuthenticatedDashboardVehiclesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,16 +154,26 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dashboard/about'
-    | '/dashboard/users'
     | '/dashboard/'
+    | '/dashboard/jobs/$jobId'
+    | '/dashboard/users/$userId'
+    | '/dashboard/vehicles/$vehicleId'
+    | '/dashboard/jobs/'
+    | '/dashboard/users/'
+    | '/dashboard/vehicles/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/register'
     | '/dashboard/about'
-    | '/dashboard/users'
     | '/dashboard'
+    | '/dashboard/jobs/$jobId'
+    | '/dashboard/users/$userId'
+    | '/dashboard/vehicles/$vehicleId'
+    | '/dashboard/jobs'
+    | '/dashboard/users'
+    | '/dashboard/vehicles'
   id:
     | '__root__'
     | '/_authenticated'
@@ -123,8 +183,13 @@ export interface FileRouteTypes {
     | '/_public/register'
     | '/_public/'
     | '/_authenticated/dashboard/about'
-    | '/_authenticated/dashboard/users'
     | '/_authenticated/dashboard/'
+    | '/_authenticated/dashboard/jobs/$jobId'
+    | '/_authenticated/dashboard/users/$userId'
+    | '/_authenticated/dashboard/vehicles/$vehicleId'
+    | '/_authenticated/dashboard/jobs/'
+    | '/_authenticated/dashboard/users/'
+    | '/_authenticated/dashboard/vehicles/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,13 +248,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
-    '/_authenticated/dashboard/users': {
-      id: '/_authenticated/dashboard/users'
-      path: '/users'
-      fullPath: '/dashboard/users'
-      preLoaderRoute: typeof AuthenticatedDashboardUsersRouteImport
-      parentRoute: typeof AuthenticatedDashboardRouteRoute
-    }
     '/_authenticated/dashboard/about': {
       id: '/_authenticated/dashboard/about'
       path: '/about'
@@ -197,20 +255,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAboutRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
+    '/_authenticated/dashboard/vehicles/': {
+      id: '/_authenticated/dashboard/vehicles/'
+      path: '/vehicles'
+      fullPath: '/dashboard/vehicles/'
+      preLoaderRoute: typeof AuthenticatedDashboardVehiclesIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
+    '/_authenticated/dashboard/users/': {
+      id: '/_authenticated/dashboard/users/'
+      path: '/users'
+      fullPath: '/dashboard/users/'
+      preLoaderRoute: typeof AuthenticatedDashboardUsersIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
+    '/_authenticated/dashboard/jobs/': {
+      id: '/_authenticated/dashboard/jobs/'
+      path: '/jobs'
+      fullPath: '/dashboard/jobs/'
+      preLoaderRoute: typeof AuthenticatedDashboardJobsIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
+    '/_authenticated/dashboard/vehicles/$vehicleId': {
+      id: '/_authenticated/dashboard/vehicles/$vehicleId'
+      path: '/vehicles/$vehicleId'
+      fullPath: '/dashboard/vehicles/$vehicleId'
+      preLoaderRoute: typeof AuthenticatedDashboardVehiclesVehicleIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
+    '/_authenticated/dashboard/users/$userId': {
+      id: '/_authenticated/dashboard/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/dashboard/users/$userId'
+      preLoaderRoute: typeof AuthenticatedDashboardUsersUserIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
+    '/_authenticated/dashboard/jobs/$jobId': {
+      id: '/_authenticated/dashboard/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/dashboard/jobs/$jobId'
+      preLoaderRoute: typeof AuthenticatedDashboardJobsJobIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
   }
 }
 
 interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardAboutRoute: typeof AuthenticatedDashboardAboutRoute
-  AuthenticatedDashboardUsersRoute: typeof AuthenticatedDashboardUsersRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardJobsJobIdRoute: typeof AuthenticatedDashboardJobsJobIdRoute
+  AuthenticatedDashboardUsersUserIdRoute: typeof AuthenticatedDashboardUsersUserIdRoute
+  AuthenticatedDashboardVehiclesVehicleIdRoute: typeof AuthenticatedDashboardVehiclesVehicleIdRoute
+  AuthenticatedDashboardJobsIndexRoute: typeof AuthenticatedDashboardJobsIndexRoute
+  AuthenticatedDashboardUsersIndexRoute: typeof AuthenticatedDashboardUsersIndexRoute
+  AuthenticatedDashboardVehiclesIndexRoute: typeof AuthenticatedDashboardVehiclesIndexRoute
 }
 
 const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRouteChildren =
   {
     AuthenticatedDashboardAboutRoute: AuthenticatedDashboardAboutRoute,
-    AuthenticatedDashboardUsersRoute: AuthenticatedDashboardUsersRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+    AuthenticatedDashboardJobsJobIdRoute: AuthenticatedDashboardJobsJobIdRoute,
+    AuthenticatedDashboardUsersUserIdRoute:
+      AuthenticatedDashboardUsersUserIdRoute,
+    AuthenticatedDashboardVehiclesVehicleIdRoute:
+      AuthenticatedDashboardVehiclesVehicleIdRoute,
+    AuthenticatedDashboardJobsIndexRoute: AuthenticatedDashboardJobsIndexRoute,
+    AuthenticatedDashboardUsersIndexRoute:
+      AuthenticatedDashboardUsersIndexRoute,
+    AuthenticatedDashboardVehiclesIndexRoute:
+      AuthenticatedDashboardVehiclesIndexRoute,
   }
 
 const AuthenticatedDashboardRouteRouteWithChildren =

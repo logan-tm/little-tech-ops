@@ -66,6 +66,27 @@ function DashboardLayout() {
             </Link>
           </li>
         )}
+        {(permissions.includes("LIST:jobs:assigned") ||
+          permissions.includes("LIST:jobs:all")) && (
+          <li>
+            <Link
+              to="/dashboard/jobs"
+              className="hover:underline data-[status='active']:font-semibold"
+            >
+              Jobs
+            </Link>
+          </li>
+        )}
+        {permissions.includes("LIST:vehicles") && (
+          <li>
+            <Link
+              to="/dashboard/vehicles"
+              className="hover:underline data-[status='active']:font-semibold"
+            >
+              Vehicles
+            </Link>
+          </li>
+        )}
         <li>
           <Link
             to="/dashboard/about"
